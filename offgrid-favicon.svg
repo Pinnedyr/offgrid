@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="OFFGRID">
+  <rect width="64" height="64" rx="16" fill="#101713"/>
+  <rect x="1" y="1" width="62" height="62" rx="15" fill="none" stroke="#c8ff5f" stroke-opacity=".42" stroke-width="1.5"/>
+  <!-- Open grid: a frame with a deliberate gap in the upper-right corner. -->
+  <path d="M37 15H19a4 4 0 0 0-4 4v26a4 4 0 0 0 4 4h26a4 4 0 0 0 4-4V34"
+        fill="none" stroke="#7ef0c0" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Arrow moving out of the grid. -->
+  <path d="M25 39 47 17M32 17h15v15"
+        fill="none" stroke="#c8ff5f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
