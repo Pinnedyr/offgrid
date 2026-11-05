@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#090b0d">
+<link rel="icon" type="image/svg+xml" href="./logo.svg">
 <meta name="description" content="OFFGRID is a simple browser start page designed primarily for school Chromebooks and personal browsing during permitted free time.">
 <title>OFFGRID — Make your free time yours</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -54,7 +55,7 @@ html[data-download="off"] .dl-on{display:none!important}
 .topbar{position:sticky;top:0;z-index:40;background:rgba(9,11,13,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
 nav{height:76px;display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.16em;font-size:16px}
-.brandmark{width:32px;height:32px;border:1px solid rgba(200,255,95,.55);border-radius:10px;display:grid;place-items:center;color:var(--lime);font-size:17px;box-shadow:0 0 24px rgba(200,255,95,.12);animation:pulse 3.2s ease-in-out infinite}
+.brandmark{width:32px;height:32px;display:block;object-fit:contain;filter:drop-shadow(0 0 10px rgba(200,255,95,.18))}
 @keyframes pulse{0%,100%{box-shadow:0 0 18px rgba(200,255,95,.10)}50%{box-shadow:0 0 34px rgba(200,255,95,.30)}}
 .navlinks{display:flex;gap:30px;align-items:center;color:#bac3bd;font-size:13px}
 .navlinks a{position:relative;padding:4px 0;transition:color .25s}
@@ -105,7 +106,7 @@ h1 .accent{background:linear-gradient(100deg,var(--lime),var(--mint),var(--lime)
 .screen-inner:after{content:"";position:absolute;left:0;right:0;height:60px;top:-60px;background:linear-gradient(180deg,transparent,rgba(200,255,95,.07),transparent);animation:scan 5s linear infinite}
 @keyframes scan{to{transform:translateY(420px)}}
 .screen-top{display:flex;justify-content:space-between;align-items:center;color:#7e8b82;font:9px 'DM Mono',monospace;letter-spacing:.12em}
-.mini-brand{color:var(--lime);font-weight:700;letter-spacing:.2em}
+.mini-brand{width:22px;height:22px;display:block;object-fit:contain}
 .browser-ui{margin-top:34px;border:1px solid rgba(200,255,95,.18);border-radius:8px;overflow:hidden;background:#101713}
 .browser-tabs{height:24px;display:flex;align-items:center;gap:5px;padding:0 8px;background:#18211b;border-bottom:1px solid rgba(255,255,255,.06)}
 .browser-tabs i{display:block;width:5px;height:5px;border-radius:50%;background:#536157}
@@ -235,7 +236,7 @@ details p{margin:0 0 24px;color:var(--muted);font-size:13px;line-height:1.85;max
 
 footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:10px}
 .footer-row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
-.footer-brand{color:#dce8dd;font-weight:800;letter-spacing:.15em}
+.footer-brand{width:32px;height:32px;display:block;object-fit:contain}
 
 /* ---------- reveal ---------- */
 .reveal{opacity:0;transform:translateY(38px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
@@ -295,7 +296,7 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
 <div class="cursor-glow" id="glow"></div>
 
 <header class="topbar"><div class="wrap"><nav aria-label="Main navigation">
-  <a class="brand" href="#top"><span class="brandmark">↗</span><span>OFFGRID</span></a>
+  <a class="brand" href="#top"><img class="brandmark" src="./logo.svg" alt="" aria-hidden="true"><span>OFFGRID</span></a>
   <div class="navlinks">
     <a href="#features">Features</a><a href="#how">How it works</a><a href="#faq">FAQ</a><a href="#download">Download</a>
     <a class="btn dl-on" href="#download">Get OFFGRID <span>↗</span></a>
@@ -323,7 +324,7 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
     <div class="float-tag tag-a">CHROMEBOOK-FIRST / 01</div>
     <div class="device" id="device">
       <div class="screen"><div class="screen-inner">
-        <div class="screen-top"><span class="mini-brand">OFFGRID</span><span>YOUR BREAK STARTS HERE</span></div>
+        <div class="screen-top"><img class="mini-brand" src="./logo.svg" alt="OFFGRID"><span>YOUR BREAK STARTS HERE</span></div>
         <div class="browser-ui">
           <div class="browser-tabs"><i></i><i></i><i></i><span class="browser-tab">New tab</span></div>
           <div class="browser-bar"><span class="browser-lock">↗</span><div class="browser-address">https://your-next-stop.com</div></div>
@@ -423,11 +424,11 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
       <p class="fineprint dl-off">Downloads are currently disabled.</p>
     </div>
   </div>
-  <div class="notice reveal"><strong>A quick note:</strong> OFFGRID is not recommended to bypass exam mode, school filters, administrator restrictions or device-management settings. Use it only where and when your school permits personal browsing and entertainment.</div>
+  <div class="notice reveal"><strong>A quick note:</strong> OFFGRID is not recommended to bypass exam mode, school filters, administrator restrictions or device-management settings. We recommend to use it where and when your school permits personal browsing and entertainment.</div>
 </div></section>
 </main>
 
-<footer><div class="wrap footer-row"><span class="footer-brand">OFFGRID</span><span>Make your free time yours.</span><span>© <span id="year"></span> OFFGRID · Part of WTFQ</span></div></footer>
+<footer><div class="wrap footer-row"><img class="footer-brand" src="./logo.svg" alt="OFFGRID"><span>Make your free time yours.</span><span>© <span id="year"></span> OFFGRID · Part of WTFQ</span></div></footer>
 
 <script>
 (function(){
