@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en" data-download="on">
 <head>
@@ -5,21 +6,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#090b0d">
 <link rel="icon" type="image/svg+xml" href="./logo.svg">
-<meta name="description" content="OFFGRID is a simple browser start page designed primarily for school Chromebooks and personal browsing during permitted free time.">
+<meta name="description" content="OFFGRID is a simple browser start page designed for exploring the internet.">
 <title>OFFGRID - Download</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <script>
-/* ============================================================
-   SITE SETTINGS — edit these two lines
-   ------------------------------------------------------------
-   DOWNLOAD_ENABLED = true   -> normal "Download" buttons work
-   DOWNLOAD_ENABLED = false  -> every download button becomes a
-                                disabled "Coming soon..." button
-                                and the download link is removed
-   ============================================================ */
 var DOWNLOAD_ENABLED = false;
 var COMING_SOON_TEXT = "Coming soon...";
 
@@ -41,17 +34,14 @@ a{color:inherit;text-decoration:none}
 .wrap{width:min(var(--max),calc(100% - 48px));margin:auto}
 .mono{font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
 
-/* ---------- download toggle ---------- */
 html[data-download="on"] .dl-off{display:none!important}
 html[data-download="off"] .dl-on{display:none!important}
 
-/* ---------- progress + glow ---------- */
 .progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:50;background:linear-gradient(90deg,var(--lime),var(--mint));transform-origin:0 50%;transform:scaleX(0);will-change:transform}
 .cursor-glow{position:fixed;left:0;top:0;width:420px;height:420px;margin:-210px 0 0 -210px;border-radius:50%;pointer-events:none;z-index:-1;
   background:radial-gradient(circle,rgba(200,255,95,.09),transparent 65%);opacity:0;transition:opacity .4s;will-change:transform}
 .cursor-glow.on{opacity:1}
 
-/* ---------- nav ---------- */
 .topbar{position:sticky;top:0;z-index:40;background:rgba(9,11,13,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
 nav{height:76px;display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.16em;font-size:16px}
@@ -63,7 +53,6 @@ nav{height:76px;display:flex;align-items:center;justify-content:space-between}
 .navlinks a:hover{color:var(--lime)}
 .navlinks a:hover:after{transform:scaleX(1)}
 
-/* ---------- buttons ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:1px solid var(--lime);background:var(--lime);color:#11170d;padding:13px 19px;border-radius:9px;font:800 13px Manrope,system-ui,sans-serif;cursor:pointer;position:relative;overflow:hidden;transition:transform .25s,box-shadow .25s,background .25s,color .25s,border-color .25s;will-change:transform}
 .btn:after{content:"";position:absolute;top:0;left:-70%;width:50%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);transition:left .6s}
 .btn:hover{transform:translateY(-3px);box-shadow:0 12px 34px rgba(200,255,95,.18);background:#d7ff8b}
@@ -75,7 +64,6 @@ nav{height:76px;display:flex;align-items:center;justify-content:space-between}
 .btn.is-disabled:after{display:none}
 .btn.big{padding:17px 26px;font-size:14px}
 
-/* ---------- hero ---------- */
 .hero{min-height:760px;display:grid;grid-template-columns:1.04fr .96fr;align-items:center;gap:40px;padding:86px 0 110px;perspective:1200px;position:relative}
 .eyebrow{display:inline-flex;gap:9px;align-items:center;color:var(--lime);font-size:11px;margin-bottom:25px}
 .dot{width:7px;height:7px;background:var(--lime);border-radius:50%;box-shadow:0 0 14px var(--lime);animation:blink 2s ease-in-out infinite}
@@ -133,14 +121,12 @@ h1 .accent{background:linear-gradient(100deg,var(--lime),var(--mint),var(--lime)
 .scroll-cue:before{content:"";height:1px;width:35px;background:var(--lime);animation:cue 2s ease-in-out infinite;transform-origin:left}
 @keyframes cue{0%{transform:scaleX(0)}60%,100%{transform:scaleX(1)}}
 
-/* ---------- marquee ---------- */
 .marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;padding:20px 0;background:rgba(200,255,95,.02);-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
 .marquee-track{display:flex;width:max-content;animation:marquee 32s linear infinite;will-change:transform}
 .marquee-track span{font:500 12px 'DM Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#7b887f;padding:0 26px;white-space:nowrap}
 .marquee-track span b{color:var(--lime);font-weight:500;margin-left:52px}
 @keyframes marquee{to{transform:translateX(-50%)}}
 
-/* ---------- sections ---------- */
 .section{padding:115px 0;border-top:1px solid var(--line)}
 .marquee+.section{border-top:0}
 .section-head{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:48px}
@@ -148,7 +134,6 @@ h1 .accent{background:linear-gradient(100deg,var(--lime),var(--mint),var(--lime)
 h2{font-size:clamp(36px,5vw,58px);line-height:1.04;letter-spacing:-.065em;margin:0;max-width:650px}
 .section-intro{max-width:360px;color:var(--muted);font-size:13px;line-height:1.8;margin:0}
 
-/* ---------- feature cards (3D tilt) ---------- */
 .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .tilt{--rx:0deg;--ry:0deg;--mx:50%;--my:50%;transform:perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));transition:transform .25s ease-out,border-color .35s;will-change:transform}
 .tilt.active{transition:transform .08s linear,border-color .35s}
@@ -163,7 +148,6 @@ h2{font-size:clamp(36px,5vw,58px);line-height:1.04;letter-spacing:-.065em;margin
 .feature h3{font-size:18px;letter-spacing:-.03em;margin:0 0 10px;position:relative}
 .feature p{font-size:12px;line-height:1.75;color:var(--muted);max-width:290px;margin:0;position:relative}
 
-/* ---------- cube showcase ---------- */
 .cube-section{background:linear-gradient(180deg,transparent,rgba(200,255,95,.03),transparent)}
 .cube-grid{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center}
 .scene{--s:200px;width:var(--s);height:var(--s);margin:auto;perspective:900px;position:relative}
@@ -186,7 +170,6 @@ h2{font-size:clamp(36px,5vw,58px);line-height:1.04;letter-spacing:-.065em;margin
 .pill{font:11px 'DM Mono',monospace;letter-spacing:.06em;border:1px solid var(--line);padding:8px 13px;border-radius:99px;color:#c7d3ca;transition:border-color .3s,color .3s,transform .3s}
 .pill:hover{border-color:var(--lime);color:var(--lime);transform:translateY(-3px)}
 
-/* ---------- how it works ---------- */
 .break-section{background:linear-gradient(180deg,transparent,rgba(126,240,192,.035),transparent)}
 .break-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:80px;align-items:center}
 .break-copy p{color:var(--muted);line-height:1.9;font-size:14px;max-width:440px}
@@ -201,7 +184,6 @@ h2{font-size:clamp(36px,5vw,58px);line-height:1.04;letter-spacing:-.065em;margin
 .step-arrow{color:#65736a;font-size:20px;transition:transform .35s,color .35s}
 .step:hover .step-arrow{transform:translate(5px,-5px);color:var(--lime)}
 
-/* ---------- timeline / values ---------- */
 .values{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .value{padding:26px 24px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.015);position:relative;overflow:hidden;transition:border-color .35s,transform .35s}
 .value:hover{border-color:rgba(200,255,95,.4);transform:translateY(-6px)}
@@ -209,7 +191,6 @@ h2{font-size:clamp(36px,5vw,58px);line-height:1.04;letter-spacing:-.065em;margin
 .value h3{margin:16px 0 8px;font-size:15px}
 .value p{margin:0;font-size:12px;line-height:1.7;color:var(--muted)}
 
-/* ---------- FAQ ---------- */
 .faq{max-width:820px}
 details{border-bottom:1px solid var(--line)}
 details:first-child{border-top:1px solid var(--line)}
@@ -221,7 +202,6 @@ summary:after{content:"+";font:400 22px 'DM Mono',monospace;color:var(--lime);tr
 details[open] summary:after{transform:rotate(135deg)}
 details p{margin:0 0 24px;color:var(--muted);font-size:13px;line-height:1.85;max-width:660px;animation:fadeUp .5s forwards;opacity:0}
 
-/* ---------- download ---------- */
 .download-panel{border:1px solid rgba(200,255,95,.24);border-radius:20px;padding:55px;background:radial-gradient(ellipse at 90% 0%,rgba(200,255,95,.12),transparent 45%),linear-gradient(145deg,#141d17,#0d1110);display:flex;align-items:center;justify-content:space-between;gap:30px;overflow:hidden;position:relative}
 .download-panel:before{content:"";position:absolute;inset:-1px;border-radius:20px;padding:1px;background:conic-gradient(from var(--ang,0deg),transparent 0 70%,rgba(200,255,95,.8) 85%,transparent 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:borderspin 7s linear infinite;pointer-events:none}
 @property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
@@ -238,12 +218,10 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
 .footer-row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .footer-brand{width:32px;height:32px;display:block;object-fit:contain}
 
-/* ---------- reveal ---------- */
 .reveal{opacity:0;transform:translateY(38px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
 .reveal.visible{opacity:1;transform:none}
 .feature.reveal.visible{transition:opacity .8s ease var(--d,0s),transform .25s ease-out,border-color .35s}
 
-/* ---------- responsive ---------- */
 @media(max-width:1000px){.values{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:850px){
   .hero{grid-template-columns:1fr;padding-top:70px;gap:10px}
@@ -315,7 +293,7 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
       <span class="btn is-disabled dl-off" role="button" aria-disabled="true"><span class="soon-text">Coming soon...</span></span>
       <a class="btn ghost magnetic" href="#features">What's inside</a>
     </div>
-    <p class="fineprint fade-in" style="animation-delay:.75s">For use during free time when your teacher and school rules allow it. OFFGRID does not disable exam mode or bypass school controls.</p>
+    <p class="fineprint fade-in" style="animation-delay:.75s">Your Chromebook. Your browser. Your questionable number of open tabs. 👀</p>
   </div>
 
   <div class="visual fade-in" style="animation-delay:.3s" aria-label="Illustration of OFFGRID running on a Chromebook">
@@ -344,19 +322,29 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
 </section>
 
 <div class="marquee" aria-hidden="true"><div class="marquee-track">
-  <span>Free time<b>↗</b></span><span>One clean start page<b>↗</b></span><span>Chromebook-first<b>↗</b></span><span>Single HTML file<b>↗</b></span><span>No installer<b>↗</b></span><span>Your break, your pace<b>↗</b></span>
-  <span>Free time<b>↗</b></span><span>One clean start page<b>↗</b></span><span>Chromebook-first<b>↗</b></span><span>Single HTML file<b>↗</b></span><span>No installer<b>↗</b></span><span>Your break, your pace<b>↗</b></span>
+  <span>Browse first, explain later<b>↗</b></span>
+  <span>Your tabs are your business<b>↗</b></span>
+  <span>Definitely not another Google Doc<b>↗</b></span>
+  <span>One click away from distraction<b>↗</b></span>
+  <span>Look busy. Browse smarter.<b>↗</b></span>
+  <span>Productivity has left the chat<b>↗</b></span>
+  <span>Browse first, explain later<b>↗</b></span>
+  <span>Your tabs are your business<b>↗</b></span>
+  <span>Definitely not another Google Doc<b>↗</b></span>
+  <span>One click away from distraction<b>↗</b></span>
+  <span>Look busy. Browse smarter.<b>↗</b></span>
+  <span>Productivity has left the chat<b>↗</b></span>
 </div></div>
 
 <section class="section" id="features"><div class="wrap">
-  <div class="section-head reveal"><div><div class="kicker mono">01 / THE GOOD STUFF</div><h2>A better way to spend<br>the time in between.</h2></div><p class="section-intro">Built with school Chromebooks in mind. Open it when your work is done and personal browsing is allowed.</p></div>
+  <div class="section-head reveal"><div><div class="kicker mono">01 / THE GOOD STUFF</div><h2>A better way to spend<br>the time in between.</h2></div><p class="section-intro">The internet is a big place. It would be a shame to spend every spare minute staring at a blank tab.</p></div>
   <div class="feature-grid">
-    <article class="feature tilt reveal" style="--d:0s"><div class="feature-icon">⌕</div><h3>Browse the web</h3><p>Open websites and explore online content completely free</p></article>
-    <article class="feature tilt reveal" style="--d:.08s"><div class="feature-icon">⌘</div><h3>Made for Chromebooks</h3><p>A lightweight HTML browser start page designed with school Chromebooks in mind.</p></article>
-    <article class="feature tilt reveal" style="--d:.16s"><div class="feature-icon">◷</div><h3>For the spare minutes</h3><p>Finished a test early? Use the time for personal browsing, watching youtube and more</p></article>
-    <article class="feature tilt reveal" style="--d:0s"><div class="feature-icon">↯</div><h3>Keep it simple</h3><p>Enter a website or search the web from one clean, distraction-free starting point.</p></article>
-    <article class="feature tilt reveal" style="--d:.08s"><div class="feature-icon">◐</div><h3>Easy on the eyes</h3><p>A dark, calm layout that stays out of the way while you decide what to look at next.</p></article>
-    <article class="feature tilt reveal" style="--d:.16s"><div class="feature-icon">▣</div><h3>One file, nothing more</h3><p>No installer and no setup wizard. It is a single standalone HTML file you can open like any other.</p></article>
+    <article class="feature tilt reveal" style="--d:0s"><div class="feature-icon">⌕</div><h3>Browse the web</h3><p>So many websites. So little time before the next bell.</p></article>
+    <article class="feature tilt reveal" style="--d:.08s"><div class="feature-icon">⌘</div><h3>Made for Chromebooks</h3><p>Your school Chromebook just got a little more interesting.</p></article>
+    <article class="feature tilt reveal" style="--d:.16s"><div class="feature-icon">◷</div><h3>For the spare minutes</h3><p>Finished early? Congratulations. You've unlocked bonus time.</p></article>
+    <article class="feature tilt reveal" style="--d:0s"><div class="feature-icon">↯</div><h3>Keep it simple</h3><p>Type a website, hit enter, and pretend you have your life together.</p></article>
+    <article class="feature tilt reveal" style="--d:.08s"><div class="feature-icon">◐</div><h3>Easy on the eyes</h3><p>Dark mode, because your eyeballs have suffered enough.</p></article>
+    <article class="feature tilt reveal" style="--d:.16s"><div class="feature-icon">▣</div><h3>One file, nothing more</h3><p>No installer, no complicated setup, no 47-step tutorial.</p></article>
   </div>
 </div></section>
 
@@ -375,37 +363,37 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
   <div class="cube-copy reveal" style="--d:.1s">
     <div class="kicker mono">02 / THE IDEA</div>
     <h2>Small on purpose.</h2>
-    <p>OFFGRID doesn't try to be everything. It's a tidy start page for the few minutes you actually get to yourself, built to stay light and out of your way.</p>
+    <p>OFFGRID doesn't try to be everything. It's a little gateway to the internet, minus the boring start page. More browsing, fewer unnecessary clicks, and hopefully fewer moments of staring at a loading screen.</p>
     <div class="pills"><span class="pill">Lightweight</span><span class="pill">Distraction-free</span><span class="pill">Chromebook-first</span><span class="pill">Standalone</span></div>
   </div>
 </div></section>
 
 <section class="section break-section" id="how"><div class="wrap break-grid">
-  <div class="break-copy reveal"><div class="kicker mono">03 / THE EARLY-FINISHER MOMENT</div><h2>Done with the test. Still waiting for the bell.</h2><p>You answered the last question, checked your work and handed it in. Everyone else is still going. OFFGRID is made for that in-between moment—when the work is done and your teacher has said you can take a break.</p><p>No pressure to fill every second. Just a little entertainment when it's actually your free time.</p></div>
+  <div class="break-copy reveal"><div class="kicker mono">03 / THE EARLY-FINISHER MOMENT</div><h2>Done with the test. Still waiting for the bell.</h2><p>You've finished the assignment. You've checked it twice. You've even checked it a third time just to look productive. Meanwhile, the clock is moving at approximately one second per hour.</p><p>Sounds like a good time to discover something more interesting than the classroom wall.</p></div>
   <div class="steps">
-    <div class="step reveal"><span class="step-num">01</span><div><h3>Finish what you're doing</h3><p>Complete your test or classwork first.</p></div><span class="step-arrow">↗</span></div>
-    <div class="step reveal" style="--d:.1s"><span class="step-num">02</span><div><h3>Wait for the green light</h3><p>Make sure your teacher has allowed break-time device use.</p></div><span class="step-arrow">↗</span></div>
-    <div class="step reveal" style="--d:.2s"><span class="step-num">03</span><div><h3>Open OFFGRID</h3><p>Open a website or search the web from the browser start page.</p></div><span class="step-arrow">↗</span></div>
+    <div class="step reveal"><span class="step-num">01</span><div><h3>Survive the waiting</h3><p>That clock isn't going to watch itself.</p></div><span class="step-arrow">↗</span></div>
+    <div class="step reveal" style="--d:.1s"><span class="step-num">02</span><div><h3>Enter OFFGRID</h3><p>Your gateway to a slightly more interesting internet.</p></div><span class="step-arrow">↗</span></div>
+    <div class="step reveal" style="--d:.2s"><span class="step-num">03</span><div><h3>Explore away</h3><p>Find something interesting. There are billions of websites.</p></div><span class="step-arrow">↗</span></div>
   </div>
 </div></section>
 
 <section class="section"><div class="wrap">
-  <div class="section-head reveal"><div><div class="kicker mono">04 / THE PRINCIPLES</div><h2>Respectful by design.</h2></div><p class="section-intro">A good break respects the room you're in. Here's what OFFGRID is about.</p></div>
+  <div class="section-head reveal"><div><div class="kicker mono">04 / THE PRINCIPLES</div><h2>Rules? Read the room.</h2></div><p class="section-intro">OFFGRID has a few principles. Some are serious. Some are just common sense.</p></div>
   <div class="values">
-    <div class="value reveal"><div class="big">01</div><h3>Work first</h3><p>Finish your assignment before you open anything for fun.</p></div>
-    <div class="value reveal" style="--d:.08s"><div class="big">02</div><h3>Ask first</h3><p>Only use it when your teacher says personal browsing is okay.</p></div>
-    <div class="value reveal" style="--d:.16s"><div class="big">03</div><h3>Access the internet</h3><p>It works with every website.</p></div>
-    <div class="value reveal" style="--d:.24s"><div class="big">04</div><h3>Keep it light</h3><p>A simple page with no installer and nothing to configure.</p></div>
+    <div class="value reveal"><div class="big">01</div><h3>Stay curious</h3><p>There's more to the internet than your school portal.</p></div>
+    <div class="value reveal" style="--d:.08s"><div class="big">02</div><h3>Keep exploring</h3><p>One website leads to another. You know how it goes.</p></div>
+    <div class="value reveal" style="--d:.16s"><div class="big">03</div><h3>Think outside the tab</h3><p>Discover new websites, tools and things worth your time.</p></div>
+    <div class="value reveal" style="--d:.24s"><div class="big">04</div><h3>Don't be that person</h3><p>Know when to close the browser and get back to reality.</p></div>
   </div>
 </div></section>
 
 <section class="section" id="faq"><div class="wrap">
   <div class="section-head reveal"><div><div class="kicker mono">05 / QUESTIONS</div><h2>Quick answers.</h2></div></div>
   <div class="faq reveal">
-    <details><summary>Does OFFGRID turn off exam mode?</summary><p>No. But it unblocks every website that's blocked.</p></details>
-    <details><summary>When should I use it?</summary><p>Only after your work is finished and your teacher or school rules allow personal browsing.</p></details>
-    <details><summary>What do I get?</summary><p>A single, lightweight HTML browser start page. There's no installer and nothing extra to set up.</p></details>
-    <details><summary>Will every website open?</summary><p>Yes. You can access every website.</p></details>
+    <details><summary>Does OFFGRID disable exam mode?</summary><p>No. OFFGRID is a browser start page. It doesn't disable exam mode but it let's you access the whole internet from one file.</p></details>
+    <details><summary>Can I access every website?</summary><p>OFFGRID lets you enter website addresses and search the web. Whether a website actually opens depends on your browser and network.</p></details>
+    <details><summary>What do I get?</summary><p>A lightweight standalone HTML file. No installer, no complicated setup and no unnecessary nonsense.</p></details>
+    <details><summary>Will my teacher know?</summary><p>We don't provide invisibility cloaks. School-managed devices and networks may still have activity monitoring.</p></details>
   </div>
 </div></section>
 
@@ -414,7 +402,7 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
     <div>
       <div class="kicker mono">06 / YOUR BREAK, SORTED</div>
       <h2><span class="dl-on">Step off the clock.</span><span class="dl-off soon-heading">Almost ready.</span></h2>
-      <p class="dl-on">Download the lightweight OFFGRID browser start page as a single HTML file. It is primarily designed for school Chromebooks and works with any websites</p>
+      <p class="dl-on">One HTML file. No installation. No complicated setup. Just OFFGRID, ready to open whenever you are.</p>
       <p class="dl-off">The download isn't available just yet. Check back soon — OFFGRID will be a single lightweight HTML file, designed primarily for school Chromebooks.</p>
     </div>
     <div class="download-actions">
@@ -424,11 +412,11 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
       <p class="fineprint dl-off">Downloads are currently disabled.</p>
     </div>
   </div>
-  <div class="notice reveal"><strong>A quick note:</strong> OFFGRID is not recommended to bypass exam mode, school filters, administrator restrictions or device-management settings. We recommend to use it where and when your school permits personal browsing and entertainment.</div>
+  <div class="notice reveal"><strong>A little reality check:</strong> OFFGRID is designed for general browsing and entertainment. We encourage users to respect their school's acceptable-use policies and only use personal browsing features where permitted. Users are responsible for how they use the software and for complying with applicable rules and restrictions. OFFGRID is provided as-is, and its creators are not responsible for misuse or consequences arising from use outside permitted settings.</div>
 </div></section>
 </main>
 
-<footer><div class="wrap footer-row"><img class="footer-brand" src="./logo.svg" alt="OFFGRID"><span>Make your free time yours.</span><span>© <span id="year"></span> OFFGRID · Part of WTFQ</span></div></footer>
+<footer><div class="wrap footer-row"><img class="footer-brand" src="./logo.svg" alt="OFFGRID"><span>Browse responsibly. Or at least close your 37 tabs eventually.</span><span>© <span id="year"></span> OFFGRID · Part of WTFQ</span></div></footer>
 
 <script>
 (function(){
@@ -436,7 +424,6 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var fine = window.matchMedia('(pointer:fine)').matches;
 
-  /* ---- download toggle (driven by DOWNLOAD_ENABLED in the head) ---- */
   var soonText = (typeof COMING_SOON_TEXT === 'string' && COMING_SOON_TEXT) ? COMING_SOON_TEXT : 'Coming soon...';
   document.querySelectorAll('.soon-text').forEach(function(el){ el.textContent = soonText; });
   if (typeof DOWNLOAD_ENABLED !== 'undefined' && !DOWNLOAD_ENABLED) {
@@ -449,7 +436,6 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
 
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  /* ---- reveal on scroll ---- */
   var items = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window && !reduce) {
     var io = new IntersectionObserver(function(entries){
@@ -462,7 +448,6 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
     items.forEach(function(i){ i.classList.add('visible'); });
   }
 
-  /* ---- scroll progress (rAF-throttled) ---- */
   var bar = document.getElementById('progress'), ticking = false;
   function updateProgress(){
     var h = document.documentElement.scrollHeight - window.innerHeight;
@@ -474,7 +459,6 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
   }, {passive:true});
   updateProgress();
 
-  /* ---- cursor glow ---- */
   var glow = document.getElementById('glow');
   var gx = 0, gy = 0, gpending = false;
   if (fine && !reduce) {
@@ -487,7 +471,6 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
     document.addEventListener('pointerleave', function(){ glow.classList.remove('on'); });
   }
 
-  /* ---- 3D card tilt + spotlight ---- */
   if (fine && !reduce) {
     document.querySelectorAll('.tilt').forEach(function(card){
       var raf = 0, ev = null;
@@ -508,7 +491,6 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
       });
     });
 
-    /* magnetic buttons */
     document.querySelectorAll('.magnetic').forEach(function(b){
       b.addEventListener('pointermove', function(e){
         var r = b.getBoundingClientRect();
@@ -519,7 +501,6 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
     });
   }
 
-  /* ---- hero device parallax tilt ---- */
   var visual = document.querySelector('.visual'), device = document.getElementById('device');
   var mouseX = 0, mouseY = 0;
   if (visual && device && fine && !reduce) {
@@ -535,7 +516,6 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
     });
   }
 
-  /* ---- 3D particle sphere (canvas, paused when off-screen) ---- */
   var canvas = document.getElementById('sphere');
   if (canvas && canvas.getContext && !reduce) {
     var ctx = canvas.getContext('2d');
