@@ -12,6 +12,7 @@
 
 <p align="center">
   <a href="https://offgrid.wtfq.online">Website</a> ·
+  <a href="https://wtfq.online">What The Facqkuit</a>
 </p>
 
 ---
