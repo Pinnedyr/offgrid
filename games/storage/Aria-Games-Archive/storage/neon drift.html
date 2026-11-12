@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Neon Drift</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { overflow: hidden; background: #0a0a0f; font-family: 'Segoe UI', system-ui, sans-serif; }
+  canvas { display: block; }
+  #hud {
+    position: fixed; top: 0; left: 0; right: 0; padding: 20px 30px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none; z-index: 10;
+  }
+  .hud-item { color: #fff; }
+  .hud-label { font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: rgba(255,255,255,0.45); margin-bottom: 4px; }
+  .hud-value { font-size: 32px; font-weight: 700; letter-spacing: 2px; }
+  #hud-best { font-size: 13px; color: rgba(255,255,255,0.35); letter-spacing: 2px; margin-top: 4px; }
+  #combo-flash {
+    position: fixed; top: 42%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 44px; font-weight: 900; color: #ff0;
+    text-shadow: 0 0 30px rgba(255,255,0,0.9);
+    pointer-events: none; opacity: 0; z-index: 20;
+    transition: opacity 0.15s; white-space: nowrap;
+  }
+  #start-screen, #game-over {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 100; background: rgba(5,5,15,0.93); backdrop-filter: blur(12px);
+  }
+  #game-over { display: none; }
+  .title {
+    font-size: clamp(38px, 10vw, 78px); font-weight: 900;
+    background: linear-gradient(135deg, #0ff, #f0f, #ff0);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 8px; letter-spacing: 5px;
+  }
+  .subtitle { color: rgba(255,255,255,0.45); font-size: 13px; letter-spacing: 7px; text-transform: uppercase; margin-bottom: 36px; }
+  .start-btn {
+    padding: 15px 46px; font-size: 17px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase;
+    background: transparent; color: #0ff; border: 2px solid #0ff; cursor: pointer; transition: all 0.25s;
+  }
+  .start-btn:hover { background: #0ff; color: #050510; box-shadow: 0 0 40px rgba(0,255,255,0.35); }
+  .controls-info { margin-top: 28px; color: rgba(255,255,255,0.3); font-size: 12px; letter-spacing: 2px; text-align: center; line-height: 2.2; }
+  .hs-wrap { margin: 22px 0 0; min-width: 220px; }
+  .hs-title { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,0.3); text-align: center; margin-bottom: 10px; }
+  .hs-row { display: flex; justify-content: space-between; padding: 5px 10px; font-size: 14px; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .hs-row:first-child { border-top: 1px solid rgba(255,255,255,0.06); }
+  .hs-rank { color: rgba(255,255,255,0.3); width: 22px; }
+  .hs-name { color: rgba(255,255,255,0.65); flex: 1; text-align: center; }
+  .hs-pts  { color: #0ff; font-weight: 700; }
+  .hs-row.gold   .hs-pts { color: #ffd700; }
+  .hs-row.silver .hs-pts { color: #c0c0c0; }
+  .hs-row.bronze .hs-pts { color: #cd7f32; }
+  .final-score { font-size: 62px; font-weight: 900; color: #f0f; text-shadow: 0 0 30px rgba(255,0,255,0.5); margin: 8px 0 4px; letter-spacing: 3px; }
+  .final-label { font-size: 12px; letter-spacing: 5px; color: rgba(255,255,255,0.35); text-transform: uppercase; }
+  .final-dist  { font-size: 15px; color: rgba(255,255,255,0.5); margin: 8px 0 6px; }
+  #new-best-badge { font-size: 13px; letter-spacing: 3px; color: #ffd700; text-transform: uppercase; margin-bottom: 4px; text-shadow: 0 0 20px rgba(255,215,0,0.7); display: none; }
+  #mobile-controls { position: fixed; bottom: 22px; left: 0; right: 0; display: none; justify-content: center; gap: 24px; z-index: 50; pointer-events: none; }
+  .mobile-btn { width: 68px; height: 68px; border-radius: 50%; background: rgba(0,255,255,0.08); border: 2px solid rgba(0,255,255,0.25); color: #0ff; font-size: 22px; display: flex; align-items: center; justify-content: center; pointer-events: all; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .mobile-btn:active { background: rgba(0,255,255,0.25); }
+  @media (max-width: 768px) { #mobile-controls { display: flex; } .hud-value { font-size: 20px; } .hud-label { font-size: 9px; } .final-score { font-size: 48px; } }
+</style>
+</head>
+<body>
+<div id="hud">
+  <div class="hud-item">
+    <div class="hud-label">Score</div>
+    <div class="hud-value" id="score-val" style="color:#f0f">0</div>
+    <div id="hud-best">BEST —</div>
+  </div>
+  <div class="hud-item" style="text-align:center">
+    <div class="hud-label">Multiplier</div>
+    <div class="hud-value" id="multi-val" style="color:rgba(255,255,255,0.5);font-size:24px">x1</div>
+  </div>
+  <div class="hud-item" style="text-align:right">
+    <div class="hud-label">Speed</div>
+    <div class="hud-value" id="speed-val" style="color:#0ff">0</div>
+  </div>
+</div>
+<div id="combo-flash"></div>
+<div id="start-screen">
+  <div class="title">NEON DRIFT</div>
+  <div class="subtitle">Endless Racer</div>
+  <button class="start-btn" id="start-btn">START</button>
+  <div class="hs-wrap">
+    <div class="hs-title">High Scores</div>
+    <div id="hs-rows"></div>
+  </div>
+  <div class="controls-info">A / D &nbsp;·&nbsp; Arrow Keys &nbsp;·&nbsp; Swipe</div>
+</div>
+<div id="game-over">
+  <div class="subtitle" style="margin-bottom:4px;letter-spacing:8px">Game Over</div>
+  <div class="final-score" id="final-score">0</div>
+  <div class="final-label">Points</div>
+  <div class="final-dist" id="final-dist">Distance: 0m</div>
+  <div id="new-best-badge">★ New High Score ★</div>
+  <div class="hs-wrap" style="margin-bottom:22px">
+    <div class="hs-title" style="margin-top:10px">Leaderboard</div>
+    <div id="hs-rows-over"></div>
+  </div>
+  <button class="start-btn" id="restart-btn">RETRY</button>
+</div>
+<div id="mobile-controls">
+  <div class="mobile-btn" id="btn-left">◀</div>
+  <div class="mobile-btn" id="btn-right">▶</div>
+</div>
+
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }</script>
+<script type="module">
+import * as THREE from 'three';
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  HIGH SCORES
+// ─────────────────────────────────────────────────────────────────────────────
+const HS_KEY = 'neonDrift_scores';
+function loadScores() { try { return JSON.parse(localStorage.getItem(HS_KEY)) || []; } catch { return []; } }
+function saveScore(pts, dist) {
+  const scores = loadScores();
+  scores.push({ pts: Math.floor(pts), dist: Math.floor(dist), date: new Date().toLocaleDateString() });
+  scores.sort((a, b) => b.pts - a.pts);
+  const top = scores.slice(0, 5);
+  localStorage.setItem(HS_KEY, JSON.stringify(top));
+  return top;
+}
+function getBest() { const s = loadScores(); return s.length ? s[0].pts : 0; }
+function renderScoreTable(id, scores) {
+  const el = document.getElementById(id);
+  if (!scores.length) { el.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:12px;text-align:center;padding:8px">No scores yet</div>'; return; }
+  const medals = ['gold','silver','bronze'];
+  el.innerHTML = scores.map((s,i) =>
+    `<div class="hs-row ${medals[i]||''}"><span class="hs-rank">#${i+1}</span><span class="hs-name">${s.date}</span><span class="hs-pts">${s.pts.toLocaleString()}</span></div>`
+  ).join('');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PALETTE
+// ─────────────────────────────────────────────────────────────────────────────
+const PALETTES = [
+  { primary:0x00ffff, secondary:0xff00ff, accent:0x7700ff, obs:0xff0033, bg:0x0a0a0f },
+  { primary:0x00ff88, secondary:0xffff00, accent:0x00cc44, obs:0xff4400, bg:0x090f09 },
+  { primary:0x4488ff, secondary:0xff8800, accent:0x0044ff, obs:0xff0044, bg:0x08090f },
+  { primary:0xff44cc, secondary:0x00ffcc, accent:0xff0099, obs:0xff2200, bg:0x0f080f },
+  { primary:0xffcc00, secondary:0xaa00ff, accent:0xff9900, obs:0xff0055, bg:0x0b080f },
+  { primary:0xff2244, secondary:0x00ffee, accent:0xff6600, obs:0xffaa00, bg:0x0f0808 },
+  { primary:0xaaff00, secondary:0xcc00ff, accent:0x55ff00, obs:0xff3300, bg:0x090f08 },
+];
+let pal = PALETTES[0];
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  CONSTANTS
+// ─────────────────────────────────────────────────────────────────────────────
+const LANE_W   = 3.5;
+const N_LANES  = 5;
+const ROAD_W   = LANE_W * N_LANES;
+const SEG_LEN  = 12;
+const N_SEGS   = 40;
+const PLAYER_Y = 0.5;
+const POOL_TRAIL = 30;
+const POOL_EXPL  = 64;
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GLOBALS
+// ─────────────────────────────────────────────────────────────────────────────
+let scene, camera, renderer, clock;
+let player, playerGlow, playerLight;
+let gameState = 'menu';
+let score = 0, dist = 0, multi = 1, comboT = 0;
+let speed = 0, playerLane = 2, playerX = 0, targetX = 0;
+const MAX_SPEED = 1.2, ACCEL = 0.003;
+let segments = [], obstacles = [], boosts = [], roadGroup;
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  SHARED GEOMETRY CACHE  (created once, never disposed)
+// ─────────────────────────────────────────────────────────────────────────────
+const GEO = {};
+function buildGeos() {
+  GEO.roadPlane   = new THREE.PlaneGeometry(ROAD_W, SEG_LEN);
+  GEO.centerDash  = new THREE.PlaneGeometry(0.07, SEG_LEN * 0.55);
+  GEO.laneDivider = new THREE.PlaneGeometry(0.04, SEG_LEN * 0.28);
+  GEO.edgeBar     = new THREE.BoxGeometry(0.12, 0.32, SEG_LEN);
+  GEO.barrier     = new THREE.BoxGeometry(LANE_W * 0.8, 1.2, 0.6);
+  GEO.barrierGlow = new THREE.BoxGeometry(LANE_W * 0.85, 0.09, 0.65);
+  GEO.cylinder    = new THREE.CylinderGeometry(0.5, 0.5, 2.5, 8);
+  GEO.spinRing    = new THREE.TorusGeometry(0.65, 0.055, 8, 16);
+  GEO.octa        = new THREE.OctahedronGeometry(0.35, 0);
+  GEO.boostOrb    = new THREE.OctahedronGeometry(0.42, 1);
+  GEO.boostRing   = new THREE.TorusGeometry(0.62, 0.045, 8, 16);
+  GEO.boostOuter  = new THREE.TorusGeometry(0.9,  0.025, 6, 16);
+  GEO.particle    = new THREE.BoxGeometry(0.1,  0.1,  0.1);
+  GEO.trail       = new THREE.BoxGeometry(0.08, 0.08, 0.28);
+  GEO.antenna     = new THREE.CylinderGeometry(0.04, 0.04, 4, 4);
+  GEO.playerBody  = new THREE.BoxGeometry(1.6, 0.3, 2.8);
+  GEO.playerCock  = new THREE.BoxGeometry(0.9, 0.25, 1.2);
+  GEO.playerStrip = new THREE.BoxGeometry(1.65, 0.05, 2.85);
+  GEO.playerEng   = new THREE.BoxGeometry(0.8, 0.15, 0.1);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  STATIC MATERIALS  (never palette-dependent)
+// ─────────────────────────────────────────────────────────────────────────────
+const MAT = {};
+function buildStaticMats() {
+  MAT.road       = new THREE.MeshStandardMaterial({ color:0x0a0a12, metalness:0.3, roughness:0.8 });
+  MAT.laneLine   = new THREE.MeshBasicMaterial({ color:0x333355, transparent:true, opacity:0.25 });
+  MAT.pillar     = new THREE.MeshStandardMaterial({ color:0x080818, metalness:0.5, roughness:0.6 });
+  MAT.carBody    = new THREE.MeshStandardMaterial({ color:0x111111, metalness:0.9, roughness:0.2 });
+  MAT.carCockpit = new THREE.MeshStandardMaterial({ color:0x0088aa, metalness:0.8, roughness:0.1, transparent:true, opacity:0.7 });
+  MAT.carStrip   = new THREE.MeshBasicMaterial({ color:0x00ffff });
+  MAT.carEngine  = new THREE.MeshBasicMaterial({ color:0xff00ff });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PALETTE MATERIALS  (rebuilt each new game, old ones disposed cleanly)
+// ─────────────────────────────────────────────────────────────────────────────
+let PM = null; // palette materials — null until first applyPalette()
+
+function applyPalette() {
+  // 1. Pick new palette
+  pal = PALETTES[Math.floor(Math.random() * PALETTES.length)];
+  scene.fog.color.setHex(pal.bg);
+  renderer.setClearColor(pal.bg, 1);
+
+  // 2. Dispose old palette mats (safe: road segments already cleared before this call)
+  if (PM) { for (const m of Object.values(PM)) m.dispose(); }
+
+  // 3. Build fresh palette mats
+  PM = {
+    centerDash : new THREE.MeshBasicMaterial({ color:pal.primary,   transparent:true, opacity:0.35 }),
+    edgeLeft   : new THREE.MeshBasicMaterial({ color:pal.secondary, transparent:true, opacity:0.65 }),
+    edgeRight  : new THREE.MeshBasicMaterial({ color:pal.primary,   transparent:true, opacity:0.65 }),
+    antenna    : new THREE.MeshBasicMaterial({ color:pal.accent }),
+    obsBarrier : new THREE.MeshStandardMaterial({ color:0x1a0000, emissive:pal.obs, emissiveIntensity:0.35 }),
+    obsBarrierG: new THREE.MeshBasicMaterial({ color:pal.obs }),
+    obsCylinder: new THREE.MeshStandardMaterial({ color:0x150010, emissive:pal.obs, emissiveIntensity:0.25 }),
+    obsRing    : new THREE.MeshBasicMaterial({ color:pal.obs }),
+    obsSlab    : new THREE.MeshStandardMaterial({ color:0x100808, emissive:pal.obs, emissiveIntensity:0.2 }),
+    obsSlabG   : new THREE.MeshBasicMaterial({ color:pal.obs, transparent:true, opacity:0.75 }),
+    obsDiamond : new THREE.MeshStandardMaterial({ color:0x100000, emissive:pal.obs, emissiveIntensity:0.5 }),
+    boostOrb   : new THREE.MeshBasicMaterial({ color:0xffff00 }),
+    boostRing  : new THREE.MeshBasicMaterial({ color:0xffff00, transparent:true, opacity:0.45 }),
+    boostOuter : new THREE.MeshBasicMaterial({ color:pal.primary, transparent:true, opacity:0.3 }),
+  };
+
+  // 4. Recolor player
+  MAT.carStrip.color.setHex(pal.primary);
+  MAT.carEngine.color.setHex(pal.secondary);
+  if (playerLight) playerLight.color.setHex(pal.primary);
+  if (playerGlow)  playerGlow.color.setHex(pal.secondary);
+
+  // 5. Update HUD colours
+  const pc = '#' + pal.primary.toString(16).padStart(6,'0');
+  const sc = '#' + pal.secondary.toString(16).padStart(6,'0');
+  DOM.score.style.color = sc;
+  DOM.speed.style.color = pc;
+  hudMultiHi = sc;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  OBJECT POOLS
+// ─────────────────────────────────────────────────────────────────────────────
+const trailPool = { free:[], active:[] };
+const explPool  = { free:[], active:[] };
+
+function makeParticle(geo) {
+  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:1 }));
+  mesh.visible = false;
+  scene.add(mesh);
+  return { mesh, vel: new THREE.Vector3(), life: 0 };
+}
+function initPools() {
+  for (let i=0; i<POOL_TRAIL; i++) trailPool.free.push(makeParticle(GEO.trail));
+  for (let i=0; i<POOL_EXPL;  i++) explPool.free.push(makeParticle(GEO.particle));
+}
+
+function spawnTrail() {
+  const p = trailPool.free.pop(); if (!p) return;
+  p.mesh.material.color.setHex(multi > 3 ? pal.secondary : pal.primary);
+  p.mesh.position.set(
+    player.position.x + (Math.random()-0.5)*0.65,
+    player.position.y + (Math.random()-0.5)*0.22,
+    player.position.z + 1.5
+  );
+  p.mesh.visible = true; p.life = 1;
+  trailPool.active.push(p);
+}
+
+function spawnExplosion(pos, color, count) {
+  for (let i=0; i<count; i++) {
+    const p = explPool.free.pop(); if (!p) continue;
+    p.mesh.material.color.setHex(color);
+    p.mesh.position.copy(pos);
+    p.vel.set((Math.random()-0.5)*0.35, Math.random()*0.35, (Math.random()-0.5)*0.35);
+    p.mesh.scale.setScalar(1);
+    p.mesh.material.opacity = 1;
+    p.mesh.visible = true; p.life = 1;
+    explPool.active.push(p);
+  }
+}
+
+function updatePools(dt) {
+  for (let i=trailPool.active.length-1; i>=0; i--) {
+    const p = trailPool.active[i];
+    p.life -= dt * 3;
+    p.mesh.material.opacity = Math.max(0, p.life * 0.6);
+    if (p.life <= 0) { p.mesh.visible=false; trailPool.free.push(p); trailPool.active.splice(i,1); }
+  }
+  for (let i=explPool.active.length-1; i>=0; i--) {
+    const p = explPool.active[i];
+    p.mesh.position.add(p.vel); p.vel.y -= 0.01;
+    p.life -= dt * 2;
+    p.mesh.material.opacity = Math.max(0, p.life);
+    p.mesh.scale.setScalar(Math.max(0.01, p.life));
+    if (p.life <= 0) { p.mesh.visible=false; explPool.free.push(p); explPool.active.splice(i,1); }
+  }
+}
+
+function resetPools() {
+  for (const p of trailPool.active) { p.mesh.visible=false; trailPool.free.push(p); }
+  trailPool.active.length = 0;
+  for (const p of explPool.active)  { p.mesh.visible=false; explPool.free.push(p); }
+  explPool.active.length = 0;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PLAYER
+// ─────────────────────────────────────────────────────────────────────────────
+function createPlayer() {
+  const g = new THREE.Group();
+
+  const body = new THREE.Mesh(GEO.playerBody, MAT.carBody);
+  body.position.y = 0.15;
+  g.add(body);
+
+  const ck = new THREE.Mesh(GEO.playerCock, MAT.carCockpit);
+  ck.position.set(0, 0.4, -0.2);
+  g.add(ck);
+
+  const strip = new THREE.Mesh(GEO.playerStrip, MAT.carStrip);
+  strip.position.y = 0.02;
+  g.add(strip);
+
+  const eng = new THREE.Mesh(GEO.playerEng, MAT.carEngine);
+  eng.position.set(0, 0.15, 1.45);
+  g.add(eng);
+
+  playerLight = new THREE.PointLight(0x00ffff, 2, 15);
+  playerLight.position.set(0, 1, 0);
+  g.add(playerLight);
+
+  playerGlow = new THREE.PointLight(0xff00ff, 1, 8);
+  playerGlow.position.set(0, 0.5, 2);
+  g.add(playerGlow);
+
+  g.position.y = PLAYER_Y;
+  scene.add(g);
+  player = g;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  STARS
+// ─────────────────────────────────────────────────────────────────────────────
+function createStars() {
+  const pos = new Float32Array(2000 * 3);
+  for (let i=0; i<2000; i++) {
+    pos[i*3]   = (Math.random()-0.5)*300;
+    pos[i*3+1] = Math.random()*100+5;
+    pos[i*3+2] = (Math.random()-0.5)*500-100;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color:0xffffff, size:0.28, transparent:true, opacity:0.55 })));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  ROAD SEGMENTS
+// ─────────────────────────────────────────────────────────────────────────────
+function buildRoad() {
+  for (let i=0; i<N_SEGS; i++) addSegment(-i * SEG_LEN);
+}
+
+function clearRoad() {
+  // Remove all segments and dispose their unique (building) geometries/materials.
+  // Safe to call before or after applyPalette because we never touch PM here.
+  for (const seg of segments) {
+    seg.group.traverse(obj => {
+      if (!obj.isMesh) return;
+      if (!obj.geometry._shared) obj.geometry.dispose();
+      if (!obj.material._shared) obj.material.dispose();
+    });
+    roadGroup.remove(seg.group);
+  }
+  segments.length = 0;
+}
+
+// Tag shared assets so clearRoad can identify them
+function tagShared() {
+  for (const g of Object.values(GEO))  g._shared = true;
+  for (const m of Object.values(MAT))  m._shared = true;
+  // PM is tagged after each applyPalette call
+}
+function tagPM() { if (PM) for (const m of Object.values(PM)) m._shared = true; }
+
+function addSegment(z) {
+  const seg = new THREE.Group();
+
+  const road = new THREE.Mesh(GEO.roadPlane, MAT.road);
+  road.rotation.x = -Math.PI/2;
+  road.position.set(0, 0, z + SEG_LEN/2);
+  seg.add(road);
+
+  const dash = new THREE.Mesh(GEO.centerDash, PM.centerDash);
+  dash.rotation.x = -Math.PI/2;
+  dash.position.set(0, 0.01, z + SEG_LEN/2);
+  seg.add(dash);
+
+  for (let l=1; l<N_LANES; l++) {
+    const div = new THREE.Mesh(GEO.laneDivider, MAT.laneLine);
+    div.rotation.x = -Math.PI/2;
+    div.position.set((l - N_LANES/2)*LANE_W, 0.01, z + SEG_LEN/2);
+    seg.add(div);
+  }
+
+  const eL = new THREE.Mesh(GEO.edgeBar, PM.edgeLeft);
+  eL.position.set(-ROAD_W/2, 0.16, z + SEG_LEN/2); seg.add(eL);
+  const eR = new THREE.Mesh(GEO.edgeBar, PM.edgeRight);
+  eR.position.set( ROAD_W/2, 0.16, z + SEG_LEN/2); seg.add(eR);
+
+  // Buildings
+  if (Math.random() < 0.42) {
+    for (const side of [-1, 1]) {
+      if (Math.random() < 0.65) {
+        const h = 6 + Math.random()*28;
+        const w = 1.2 + Math.random()*3.5;
+        const pillarGeo = new THREE.BoxGeometry(w, h, w); // unique per building
+        const pillar = new THREE.Mesh(pillarGeo, MAT.pillar);
+        const offset = ROAD_W/2 + 3 + Math.random()*9;
+        pillar.position.set(side*offset, h/2, z + SEG_LEN/2 + (Math.random()-0.5)*SEG_LEN);
+        seg.add(pillar);
+
+        if (h > 10) {
+          const winCol = [pal.primary, pal.secondary, pal.accent][Math.floor(Math.random()*3)];
+          const winMat = new THREE.MeshBasicMaterial({ color:winCol, transparent:true, opacity:0.25+Math.random()*0.4 });
+          const winGeo = new THREE.BoxGeometry(w+0.1, 0.12, 0.12); // unique per building
+          for (let wy=2; wy<h-1; wy+=1.4+Math.random()*0.8) {
+            if (Math.random() < 0.7) {
+              const win = new THREE.Mesh(winGeo, winMat);
+              win.position.set(pillar.position.x, wy, pillar.position.z);
+              seg.add(win);
+            }
+          }
+          const roofLight = new THREE.PointLight(winCol, 0.4, 12);
+          roofLight.position.set(pillar.position.x, h+1, pillar.position.z);
+          seg.add(roofLight);
+        }
+        if (Math.random() < 0.3) {
+          const ant = new THREE.Mesh(GEO.antenna, PM.antenna);
+          ant.position.set(pillar.position.x, h+2, pillar.position.z);
+          seg.add(ant);
+        }
+      }
+    }
+  }
+
+  roadGroup.add(seg);
+  segments.push({ group:seg, z });
+
+  if (Math.abs(z) > SEG_LEN*3  && Math.random() < 0.44 + dist*0.00001) spawnObstacle(z + SEG_LEN/2);
+  if (Math.abs(z) > SEG_LEN*5  && Math.random() < 0.15)                 spawnBoost(z + SEG_LEN/2);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  OBSTACLES
+// ─────────────────────────────────────────────────────────────────────────────
+function spawnObstacle(z) {
+  const lane = Math.floor(Math.random()*N_LANES);
+  const x = (lane - (N_LANES-1)/2) * LANE_W;
+  const t = Math.random();
+  let mesh;
+
+  if (t < 0.35) {
+    mesh = new THREE.Mesh(GEO.barrier, PM.obsBarrier);
+    const glow = new THREE.Mesh(GEO.barrierGlow, PM.obsBarrierG);
+    glow.position.y = 0.65; mesh.add(glow);
+  } else if (t < 0.65) {
+    mesh = new THREE.Mesh(GEO.cylinder, PM.obsCylinder);
+    mesh.position.y = 0.6;
+    const ring = new THREE.Mesh(GEO.spinRing, PM.obsRing);
+    ring.rotation.x = Math.PI/2; ring.position.y = 1.2; ring.name = 'spinRing';
+    mesh.add(ring);
+  } else if (t < 0.82) {
+    const w = LANE_W*(0.6+Math.random()*0.3);
+    // Slab has random width — unique geometry, but NOT tagged shared so clearRoad disposes it
+    const sg = new THREE.BoxGeometry(w, 0.75, 1.5);
+    const gg = new THREE.BoxGeometry(w+0.06, 0.07, 1.56);
+    mesh = new THREE.Mesh(sg, PM.obsSlab);
+    mesh.position.y = 0.37;
+    const s = new THREE.Mesh(gg, PM.obsSlabG);
+    s.position.y = 0.37; mesh.add(s);
+  } else {
+    mesh = new THREE.Group();
+    for (let ci=0; ci<3; ci++) {
+      const d = new THREE.Mesh(GEO.octa, PM.obsDiamond);
+      d.position.set((ci-1)*0.7, 0.8, 0); mesh.add(d);
+    }
+  }
+
+  mesh.position.set(x, 0, z);
+  const lt = new THREE.PointLight(pal.obs, 0.9, 7);
+  lt.position.y = 1; mesh.add(lt);
+  scene.add(mesh);
+  // Cache spin ring ref now to avoid traverse() every frame
+  let spinRef = null;
+  mesh.traverse(c => { if (c.name === 'spinRing') spinRef = c; });
+  obstacles.push({ mesh, z, spinRef });
+}
+
+function clearObstacles() {
+  for (const o of obstacles) {
+    // Dispose slab's unique geometries
+    o.mesh.traverse(obj => { if (obj.isMesh && !obj.geometry._shared) obj.geometry.dispose(); });
+    scene.remove(o.mesh);
+  }
+  obstacles.length = 0;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  BOOSTS
+// ─────────────────────────────────────────────────────────────────────────────
+function spawnBoost(z) {
+  const lane = Math.floor(Math.random()*N_LANES);
+  const x = (lane-(N_LANES-1)/2)*LANE_W;
+  const g = new THREE.Group();
+
+  const orb = new THREE.Mesh(GEO.boostOrb, PM.boostOrb);
+  orb.position.y = 1; g.add(orb);
+  const ring = new THREE.Mesh(GEO.boostRing, PM.boostRing);
+  ring.position.y = 1; g.add(ring);
+  const outer = new THREE.Mesh(GEO.boostOuter, PM.boostOuter);
+  outer.position.y = 1; g.add(outer);
+  const lt = new THREE.PointLight(0xffff00, 1.1, 9);
+  lt.position.y = 1; g.add(lt);
+
+  g.position.set(x, 0, z);
+  scene.add(g);
+  boosts.push({ group:g, z, collected:false, orb, ring, outer });
+}
+
+function clearBoosts() {
+  for (const b of boosts) scene.remove(b.group);
+  boosts.length = 0;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  DOM REFS & HUD
+// ─────────────────────────────────────────────────────────────────────────────
+const DOM = {
+  score      : document.getElementById('score-val'),
+  speed      : document.getElementById('speed-val'),
+  multi      : document.getElementById('multi-val'),
+  best       : document.getElementById('hud-best'),
+  combo      : document.getElementById('combo-flash'),
+  startScreen: document.getElementById('start-screen'),
+  overScreen : document.getElementById('game-over'),
+  finalScore : document.getElementById('final-score'),
+  finalDist  : document.getElementById('final-dist'),
+  newBest    : document.getElementById('new-best-badge'),
+};
+let hudMultiHi = '#ff00ff';
+let lastHudScore = -1, lastHudSpeed = -1, lastHudMulti = -1;
+
+function updateHUD() {
+  const s = Math.floor(score);
+  if (s !== lastHudScore) { DOM.score.textContent = s.toLocaleString(); lastHudScore = s; }
+  const sp = Math.floor(speed * 200);
+  if (sp !== lastHudSpeed) { DOM.speed.textContent = sp + ' km/h'; lastHudSpeed = sp; }
+  if (multi !== lastHudMulti) {
+    DOM.multi.textContent = 'x' + multi;
+    DOM.multi.style.color = multi > 3 ? hudMultiHi : multi > 1 ? '#ffff00' : 'rgba(255,255,255,0.45)';
+    lastHudMulti = multi;
+  }
+}
+function updateBest() { const b = getBest(); DOM.best.textContent = b ? 'BEST  '+b.toLocaleString() : 'BEST —'; }
+function showCombo(txt) {
+  DOM.combo.textContent = txt;
+  DOM.combo.style.opacity = '1';
+  DOM.combo.style.color = '#' + pal.primary.toString(16).padStart(6,'0');
+  setTimeout(() => { DOM.combo.style.opacity = '0'; }, 650);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  INPUT
+// ─────────────────────────────────────────────────────────────────────────────
+const keys = {};
+let touchStartX = 0, mobileLeft = false, mobileRight = false, lastInput = 0;
+
+function handleInput() {
+  const now = performance.now();
+  if (now - lastInput < 150) return;
+  if (keys['a'] || keys['arrowleft']  || mobileLeft)  { changeLane(-1); lastInput=now; mobileLeft=false; }
+  if (keys['d'] || keys['arrowright'] || mobileRight) { changeLane( 1); lastInput=now; mobileRight=false; }
+}
+function changeLane(d) {
+  if (gameState !== 'playing') return;
+  playerLane = Math.max(0, Math.min(N_LANES-1, playerLane+d));
+  targetX = (playerLane-(N_LANES-1)/2)*LANE_W;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GAME FLOW
+// ─────────────────────────────────────────────────────────────────────────────
+function startGame() {
+  DOM.startScreen.style.display = 'none';
+  DOM.overScreen.style.display  = 'none';
+
+  // Reset state
+  score=0; dist=0; multi=1; comboT=0;
+  speed=0.3; playerLane=2; playerX=0; targetX=0;
+  lastHudScore=-1; lastHudSpeed=-1; lastHudMulti=-1;
+
+  // Clear world — obstacles & boosts first (they ref PM mats we're about to replace)
+  clearObstacles();
+  clearBoosts();
+  clearRoad();        // disposes unique building geo/mats only
+  resetPools();
+
+  // New palette — disposes old PM, builds new PM, recolors player/HUD
+  applyPalette();
+  tagPM();            // mark new PM as shared so clearRoad won't dispose them
+
+  // Rebuild world
+  buildRoad();
+
+  player.position.set(0, PLAYER_Y, 0);
+  player.rotation.set(0, 0, 0);
+  gameState = 'playing';
+}
+
+function endGame() {
+  gameState = 'over';
+  const pts = Math.floor(score);
+  const prev = getBest();
+  const top = saveScore(pts, dist);
+  renderScoreTable('hs-rows', top);
+  renderScoreTable('hs-rows-over', top);
+  updateBest();
+  DOM.finalScore.textContent = pts.toLocaleString();
+  DOM.finalDist.textContent  = 'Distance: ' + Math.floor(dist) + ' m';
+  DOM.newBest.style.display  = pts > prev && prev > 0 ? 'block' : 'none';
+  DOM.overScreen.style.display = 'flex';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  UPDATE LOOP
+// ─────────────────────────────────────────────────────────────────────────────
+function update(dt) {
+  if (gameState !== 'playing') {
+    // Idle drift on menu/over screens
+    if (player) {
+      player.position.z -= dt * 5;
+      camera.position.z  = player.position.z + 8;
+      camera.lookAt(player.position.x, 1, player.position.z - 20);
+    }
+    return;
+  }
+
+  handleInput();
+
+  speed = Math.min(MAX_SPEED, speed + ACCEL*dt);
+  const dz = speed * dt * 60;
+  dist  += dz;
+  score += dz * multi * 0.5;
+
+  if (comboT > 0) { comboT -= dt; if (comboT <= 0) multi = 1; }
+
+  // Player movement
+  playerX += (targetX - playerX) * 0.12;
+  player.position.x  = playerX;
+  player.position.z -= dz;
+  player.position.y  = PLAYER_Y + Math.sin(performance.now() * 0.003) * 0.08;
+  player.rotation.z += ((targetX - playerX) * 0.15 - player.rotation.z) * 0.1;
+
+  // Camera
+  camera.position.x += (playerX*0.3 - camera.position.x) * 0.05;
+  camera.position.z  = player.position.z + 8;
+  camera.position.y  = 3.5 + speed * 1.5;
+  camera.lookAt(playerX*0.5, 0.5, player.position.z - 20);
+  camera.fov = 65 + speed * 15;
+  camera.updateProjectionMatrix();
+
+  const pz = player.position.z;
+
+  // Road recycling
+  for (let i=segments.length-1; i>=0; i--) {
+    if (segments[i].z > pz + SEG_LEN*2) {
+      const seg = segments[i];
+      seg.group.traverse(obj => {
+        if (!obj.isMesh) return;
+        if (!obj.geometry._shared) obj.geometry.dispose();
+        if (!obj.material._shared) obj.material.dispose();
+      });
+      roadGroup.remove(seg.group);
+      segments.splice(i, 1);
+    }
+  }
+  while (segments.length < N_SEGS) {
+    let minZ = Infinity;
+    for (let i=0; i<segments.length; i++) if (segments[i].z < minZ) minZ = segments[i].z;
+    addSegment(isFinite(minZ) ? minZ - SEG_LEN : pz);
+  }
+
+  // Obstacles
+  for (let i=obstacles.length-1; i>=0; i--) {
+    const o = obstacles[i];
+    if (o.z > pz + 30) {
+      o.mesh.traverse(obj => { if (obj.isMesh && !obj.geometry._shared) obj.geometry.dispose(); });
+      scene.remove(o.mesh); obstacles.splice(i,1); continue;
+    }
+    if (o.spinRef) o.spinRef.rotation.y += dt * 2.5;
+
+    const odz = Math.abs(pz - o.mesh.position.z);
+    const odx = Math.abs(playerX - o.mesh.position.x);
+    if (odz < 1.5 && odx < LANE_W*0.4) {
+      spawnExplosion(player.position.clone(), pal.obs, 28);
+      endGame(); return;
+    }
+    if (odz < 2 && odx < LANE_W*0.8 && odx >= LANE_W*0.4 && !o.nearMiss) {
+      o.nearMiss = true;
+      multi = Math.min(10, multi+1); comboT = 3;
+      showCombo('NEAR MISS!  x'+multi);
+    }
+  }
+
+  // Boosts
+  for (let i=boosts.length-1; i>=0; i--) {
+    const b = boosts[i];
+    if (b.group.position.z > pz + 30) { scene.remove(b.group); boosts.splice(i,1); continue; }
+    if (!b.collected) {
+      const bdz = Math.abs(pz - b.group.position.z);
+      const bdx = Math.abs(playerX - b.group.position.x);
+      if (bdz < 1.5 && bdx < LANE_W*0.5) {
+        b.collected = true;
+        spawnExplosion(b.group.position.clone(), 0xffff00, 25);
+        scene.remove(b.group); boosts.splice(i,1);
+        score += 100*multi; multi = Math.min(10,multi+1); comboT = 4;
+        showCombo('+'+(100*multi)+'  x'+multi);
+        speed = Math.min(MAX_SPEED, speed+0.05);
+      } else {
+        b.orb.rotation.y  += dt*3;
+        b.ring.rotation.z += dt*2;
+        b.ring.rotation.x  = Math.sin(performance.now()*0.002)*0.5+Math.PI/2;
+        b.outer.rotation.z -= dt*1.2;
+      }
+    }
+  }
+
+  if (Math.random() < 0.5+speed) spawnTrail();
+  updatePools(dt);
+  updateHUD();
+  playerGlow.intensity = 0.5 + speed*2;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────────────────────────────
+function init() {
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x0a0a0f, 0.012);
+
+  camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 500);
+  camera.position.set(0, 4, 8);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+  renderer.setClearColor(0x0a0a0f, 1);
+  document.body.appendChild(renderer.domElement);
+
+  clock = new THREE.Clock();
+  scene.add(new THREE.AmbientLight(0x111122, 0.5));
+  const dir = new THREE.DirectionalLight(0x8888ff, 0.3);
+  dir.position.set(5,10,5); scene.add(dir);
+
+  roadGroup = new THREE.Group();
+  scene.add(roadGroup);
+
+  // Build all static assets
+  buildGeos();
+  buildStaticMats();
+  tagShared();
+
+  // First palette (needed before buildRoad)
+  applyPalette();
+  tagPM();
+
+  createPlayer();
+  createStars();
+  initPools();
+  buildRoad();
+
+  renderScoreTable('hs-rows', loadScores());
+  updateBest();
+
+  // Events
+  window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
+  window.addEventListener('keyup',   e => { keys[e.key.toLowerCase()] = false; });
+  window.addEventListener('resize',  () => {
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+  renderer.domElement.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive:true });
+  renderer.domElement.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 30) changeLane(dx < 0 ? -1 : 1);
+  }, { passive:true });
+
+  document.getElementById('btn-left').addEventListener('touchstart',  e => { e.preventDefault(); mobileLeft=true;  }, { passive:false });
+  document.getElementById('btn-left').addEventListener('touchend',    ()  => { mobileLeft=false;  });
+  document.getElementById('btn-right').addEventListener('touchstart', e => { e.preventDefault(); mobileRight=true; }, { passive:false });
+  document.getElementById('btn-right').addEventListener('touchend',   ()  => { mobileRight=false; });
+
+  document.getElementById('start-btn').onclick   = startGame;
+  document.getElementById('restart-btn').onclick = startGame;
+
+  (function animate() {
+    requestAnimationFrame(animate);
+    update(Math.min(clock.getDelta(), 0.05));
+    renderer.render(scene, camera);
+  })();
+}
+
+init();
+</script>
+<script src="../udir.js"></script>
+</body>
+</html>

@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aria — Clicker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Fira+Code:wght@400;500&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+ --bg:#070a10; --border:#1a2035; --text:#c8d4e8; --subtle:#3a4a65;
+ --accent:#3a7bff; --accent2:#5b9fff; --gold:#f0b030; --gold2:#ffd060;
+ --green:#30c080; --red:#cc4444;
+ --font-ui:'Sora',sans-serif; --font-body:'Lora',Georgia,serif; --font-mono:'Fira Code',monospace;
+ --panel-w:380px;
+}
+body{background:var(--bg);font-family:var(--font-ui);color:var(--text);
+    height:100dvh;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+#particles{position:fixed;inset:0;pointer-events:none;z-index:0;}
+#bgfade{position:fixed;bottom:0;left:0;width:100%;height:55%;pointer-events:none;z-index:1;
+       background:linear-gradient(to top,rgba(20,50,120,.20) 0%,rgba(15,35,90,.10) 40%,transparent 100%);
+       transition:background .5s ease;}
+#bar{display:flex;align-items:center;justify-content:space-between;
+    padding:0 20px;height:48px;border-bottom:1px solid var(--border);
+    background:rgba(7,10,16,.95);backdrop-filter:blur(12px);
+    position:relative;z-index:50;flex-shrink:0;}
+#bar-left{display:flex;align-items:center;gap:10px;}
+#logo-icon{width:28px;height:28px;border-radius:8px;
+          background:linear-gradient(135deg,#1a3a80,#0d1f50);
+          border:1px solid rgba(58,123,255,.4);
+          box-shadow:0 0 14px rgba(58,123,255,.45),inset 0 0 8px rgba(91,159,255,.2);
+          display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:15px;}
+#logo-icon img{width:100%;height:100%;object-fit:contain;border-radius:6px;}
+#game-title{font-size:15px;font-weight:700;letter-spacing:.10em;color:#fff;text-shadow:0 0 18px rgba(58,123,255,.6);}
+#game-tag{font-size:9px;color:var(--accent);letter-spacing:.14em;text-transform:uppercase;opacity:.7;}
+#bar-stats{display:flex;align-items:center;gap:20px;}
+.bar-stat{display:flex;flex-direction:column;align-items:flex-end;}
+.bar-stat-label{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);}
+.bar-stat-val{font-size:13px;font-weight:600;font-family:var(--font-mono);color:var(--accent2);line-height:1.2;}
+.bar-stat-val.gold{color:var(--gold);}
+#bar-right{display:flex;gap:8px;align-items:center;}
+.bar-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;
+        background:transparent;border:1px solid var(--border);cursor:pointer;
+        font-family:var(--font-ui);font-size:11px;font-weight:600;color:var(--subtle);
+        letter-spacing:.06em;transition:background .15s,border-color .15s,color .15s;}
+.bar-btn:hover{background:rgba(58,123,255,.1);border-color:#1a2a40;color:var(--accent2);}
+.bar-btn.danger:hover{background:rgba(200,50,50,.1);border-color:#3a1515;color:var(--red);}
+#shop-btn{position:relative;}
+#shop-btn.open{background:rgba(58,123,255,.12);border-color:rgba(58,123,255,.35);color:var(--accent2);}
+.shop-badge{position:absolute;top:-5px;right:-5px;background:var(--green);color:#fff;
+           border-radius:8px;font-size:8px;font-weight:700;padding:1px 5px;
+           font-family:var(--font-mono);animation:badge-pulse 1.4s ease-in-out infinite;
+           pointer-events:none;}
+@keyframes badge-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+#main{flex:1;display:flex;align-items:center;justify-content:center;
+     position:relative;z-index:2;overflow:hidden;}
+.ring{position:absolute;border-radius:50%;border:1px solid rgba(58,123,255,.10);pointer-events:none;}
+#ring1{width:260px;height:260px;animation:ring-pulse 2.6s ease-in-out infinite;}
+#ring2{width:320px;height:320px;animation:ring-pulse 2.6s ease-in-out infinite .7s;}
+#ring3{width:390px;height:390px;animation:ring-pulse 2.6s ease-in-out infinite 1.3s;}
+@keyframes ring-pulse{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.04);opacity:.9}}
+#orb-btn{width:170px;height:170px;border-radius:50%;
+        background:radial-gradient(circle at 38% 36%,#1e4080 0%,#0b1830 60%,#070e20 100%);
+        border:2px solid rgba(58,123,255,.35);
+        box-shadow:0 0 50px rgba(58,123,255,.35),0 0 100px rgba(20,60,180,.2),inset 0 0 35px rgba(58,123,255,.1);
+        cursor:pointer;display:flex;align-items:center;justify-content:center;
+        font-size:54px;position:relative;z-index:2;
+        transition:transform .08s ease,box-shadow .08s ease;
+        user-select:none;-webkit-user-select:none;}
+#orb-btn:hover{box-shadow:0 0 65px rgba(58,123,255,.5),0 0 120px rgba(20,60,180,.3),inset 0 0 45px rgba(58,123,255,.15);}
+#orb-btn.clicked{transform:scale(.91);box-shadow:0 0 28px rgba(58,123,255,.3),inset 0 0 28px rgba(58,123,255,.22);}
+#counter-block{position:absolute;bottom:13%;left:50%;transform:translateX(-50%);
+              text-align:center;z-index:3;pointer-events:none;}
+#counter-val{font-size:36px;font-weight:700;font-family:var(--font-mono);color:#fff;
+            line-height:1;letter-spacing:-.02em;text-shadow:0 0 24px rgba(58,123,255,.6);}
+#counter-sub{display:flex;gap:18px;justify-content:center;margin-top:6px;}
+.counter-sub-item{font-size:11px;font-family:var(--font-mono);color:var(--subtle);}
+.counter-sub-item span{color:var(--accent2);}
+#prestige-strip{position:absolute;bottom:2%;left:50%;transform:translateX(-50%);
+               z-index:3;display:flex;align-items:center;gap:12px;pointer-events:all;}
+#prestige-stars-wrap{display:flex;gap:3px;align-items:center;}
+.pstar{font-size:12px;filter:drop-shadow(0 0 4px rgba(240,176,48,.7));}
+#prestige-progress-wrap{width:120px;height:3px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
+#prestige-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:3px;transition:width .4s ease;width:0%;}
+#prestige-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;
+             background:rgba(240,176,48,.08);border:1px solid rgba(240,176,48,.2);
+             cursor:pointer;font-family:var(--font-ui);font-size:10px;font-weight:600;
+             color:var(--gold);letter-spacing:.06em;
+             transition:background .15s,border-color .15s,opacity .15s;}
+#prestige-btn:hover:not(:disabled){background:rgba(240,176,48,.16);border-color:rgba(240,176,48,.4);}
+#prestige-btn:disabled{opacity:.25;cursor:not-allowed;}
+#prestige-pct{font-size:9px;font-family:var(--font-mono);color:var(--gold);opacity:.55;}
+#shop-panel{position:fixed;top:48px;right:0;bottom:0;width:var(--panel-w);
+           background:rgba(6,9,15,.97);border-left:1px solid var(--border);
+           backdrop-filter:blur(16px);z-index:40;display:flex;flex-direction:column;
+           transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);}
+#shop-panel.open{transform:translateX(0);}
+#shop-tabs{display:flex;border-bottom:1px solid var(--border);
+          background:rgba(4,6,12,.9);flex-shrink:0;padding:0 12px;align-items:center;}
+.tab-btn{padding:11px 14px 9px;font-size:10px;font-weight:600;letter-spacing:.08em;
+        text-transform:uppercase;cursor:pointer;border:none;background:transparent;
+        color:var(--subtle);font-family:var(--font-ui);
+        border-bottom:2px solid transparent;margin-bottom:-1px;
+        transition:color .15s,border-color .15s;
+        display:flex;align-items:center;gap:5px;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--accent2);border-bottom-color:var(--accent);}
+.tab-badge{background:rgba(58,123,255,.15);border:1px solid rgba(58,123,255,.25);
+          border-radius:6px;padding:1px 5px;font-size:9px;color:var(--accent);
+          font-family:var(--font-mono);}
+.tab-badge.gold{background:rgba(240,176,48,.15);border-color:rgba(240,176,48,.25);color:var(--gold);}
+.tab-badge.new{background:rgba(48,192,128,.15);border-color:rgba(48,192,128,.3);color:var(--green);
+              animation:badge-pulse 1.4s ease-in-out infinite;}
+#buy-toggle{margin-left:auto;display:flex;gap:3px;}
+.bm-btn{padding:3px 8px;border-radius:5px;font-size:9px;font-weight:600;
+       font-family:var(--font-mono);cursor:pointer;
+       background:transparent;border:1px solid var(--border);color:var(--subtle);transition:all .12s;}
+.bm-btn.active{background:rgba(58,123,255,.15);border-color:rgba(58,123,255,.35);color:var(--accent2);}
+.bm-btn:hover:not(.active){background:rgba(255,255,255,.04);color:var(--text);}
+#shop-content{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#1a2035 transparent;}
+.sec-label{padding:12px 16px 5px;font-size:8px;letter-spacing:.14em;
+          text-transform:uppercase;color:#1e2e45;font-family:var(--font-ui);
+          display:flex;align-items:center;gap:8px;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);opacity:.5;}
+.upg-card{display:flex;align-items:center;gap:10px;
+         padding:9px 14px;margin:2px 8px;border-radius:9px;
+         border:1px solid transparent;cursor:pointer;
+         transition:background .12s,border-color .12s,opacity .15s;}
+.upg-card:hover:not(.locked):not(.owned){background:rgba(58,123,255,.07);border-color:rgba(58,123,255,.15);}
+.upg-card.can-afford{border-color:rgba(58,123,255,.22);}
+.upg-card.locked{opacity:.28;cursor:not-allowed;}
+.upg-card.owned{opacity:.38;cursor:default;}
+.upg-card.gold-type:hover:not(.locked):not(.owned){background:rgba(240,176,48,.07);border-color:rgba(240,176,48,.2);}
+.upg-card.gold-type.can-afford{border-color:rgba(240,176,48,.28);}
+.upg-icon{font-size:22px;flex-shrink:0;width:30px;text-align:center;}
+.upg-info{flex:1;min-width:0;}
+.upg-name{font-size:12px;font-weight:600;color:var(--text);line-height:1.2;}
+.upg-meta{display:flex;gap:7px;margin-top:3px;align-items:center;flex-wrap:wrap;}
+.upg-cost{font-size:9px;font-family:var(--font-mono);font-weight:600;color:var(--accent2);
+         background:rgba(58,123,255,.1);border:1px solid rgba(58,123,255,.2);
+         border-radius:4px;padding:1px 6px;}
+.upg-cost.gc{color:var(--gold);background:rgba(240,176,48,.1);border-color:rgba(240,176,48,.2);}
+.upg-owned-tag{font-size:9px;font-family:var(--font-mono);color:var(--green);
+              background:rgba(48,192,128,.1);border:1px solid rgba(48,192,128,.2);
+              border-radius:4px;padding:1px 6px;}
+.upg-effect{font-size:9px;color:var(--green);font-family:var(--font-mono);}
+.upg-lvl{font-size:9px;color:var(--subtle);font-family:var(--font-mono);}
+.upg-locked-note{font-size:9px;color:#1e2d3a;font-family:var(--font-mono);}
+.gen-card{display:flex;align-items:center;gap:10px;
+         padding:9px 14px;margin:2px 8px;border-radius:9px;
+         border:1px solid var(--border);cursor:pointer;
+         transition:background .12s,border-color .12s,opacity .15s;}
+.gen-card:hover:not(.locked){background:rgba(58,123,255,.07);border-color:rgba(58,123,255,.22);}
+.gen-card.can-afford{border-color:rgba(58,123,255,.32);}
+.gen-card.locked{opacity:.22;cursor:not-allowed;}
+.gen-icon{font-size:22px;flex-shrink:0;width:30px;text-align:center;}
+.gen-info{flex:1;min-width:0;}
+.gen-name{font-size:12px;font-weight:600;color:var(--text);}
+.gen-meta{display:flex;gap:8px;margin-top:3px;align-items:center;}
+.gen-cost{font-size:10px;font-family:var(--font-mono);font-weight:600;color:var(--accent2);}
+.gen-rate{font-size:9px;font-family:var(--font-mono);color:var(--green);}
+.gen-count{margin-left:auto;font-size:22px;font-weight:700;font-family:var(--font-mono);
+          color:var(--accent);min-width:28px;text-align:right;line-height:1;}
+.ach-card{display:flex;align-items:center;gap:10px;
+         padding:9px 14px;margin:2px 8px;border-radius:9px;
+         border:1px solid var(--border);transition:opacity .3s;}
+.ach-card.locked{opacity:.20;filter:grayscale(.8);}
+.ach-card.unlocked{border-color:rgba(240,176,48,.2);background:rgba(240,176,48,.03);}
+.ach-icon{font-size:20px;flex-shrink:0;width:28px;text-align:center;}
+.ach-info{flex:1;}
+.ach-name{font-size:11px;font-weight:600;color:var(--text);}
+.ach-desc{font-size:10px;color:var(--subtle);margin-top:1px;font-family:var(--font-body);font-style:italic;}
+.ach-bonus{font-size:9px;color:var(--gold);font-family:var(--font-mono);margin-top:2px;}
+.ach-tag{font-size:8px;color:var(--gold);font-family:var(--font-mono);letter-spacing:.06em;}
+.float-num{position:fixed;pointer-events:none;z-index:999;
+          font-family:var(--font-mono);font-weight:700;font-size:15px;
+          color:var(--accent2);text-shadow:0 0 8px rgba(58,123,255,.8);
+          animation:float-up .85s ease-out forwards;}
+.float-num.crit{color:var(--gold);font-size:22px;text-shadow:0 0 12px rgba(240,176,48,.9);}
+@keyframes float-up{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-70px) scale(.7)}}
+#golden-event{position:fixed;cursor:pointer;z-index:500;font-size:34px;
+             filter:drop-shadow(0 0 10px rgba(240,176,48,.9));
+             animation:golden-drift 15s ease-in-out forwards;pointer-events:all;}
+@keyframes golden-drift{
+ 0%{opacity:0;transform:translateY(20px) scale(.6)}
+ 10%{opacity:1;transform:translateY(0) scale(1.1)}
+ 50%{opacity:1;transform:translateY(-18px) scale(1)}
+ 90%{opacity:.8;transform:translateY(6px) scale(.95)}
+ 100%{opacity:0;transform:translateY(32px) scale(.7)}}
+#toast-container{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+                z-index:9999;display:flex;flex-direction:column;gap:8px;
+                align-items:center;pointer-events:none;}
+.toast{background:#0b1525;border:1px solid #1a2a40;border-radius:10px;padding:9px 16px;
+      font-size:11px;font-family:var(--font-ui);color:var(--text);
+      display:flex;align-items:center;gap:8px;box-shadow:0 4px 24px rgba(0,0,0,.5);
+      animation:toast-in .25s ease forwards;white-space:nowrap;}
+.toast.gold{border-color:rgba(240,176,48,.3);color:var(--gold);}
+@keyframes toast-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toast-out{from{opacity:1}to{opacity:0;transform:translateY(6px)}}
+#prestige-overlay{display:none;position:fixed;inset:0;background:rgba(3,5,10,.92);
+                 z-index:9998;align-items:center;justify-content:center;}
+#prestige-overlay.visible{display:flex;}
+#prestige-modal{background:#090d18;border:1px solid rgba(240,176,48,.25);border-radius:18px;
+               padding:36px 40px;max-width:400px;width:90%;text-align:center;
+               box-shadow:0 0 60px rgba(240,176,48,.15);}
+#prestige-modal h2{font-size:20px;font-weight:700;color:var(--gold);letter-spacing:.05em;margin-bottom:10px;}
+#prestige-modal p{font-size:13px;color:#6a8ab0;line-height:1.8;margin-bottom:16px;font-family:var(--font-body);}
+#prestige-modal-info{font-size:12px;color:var(--gold2);font-family:var(--font-mono);margin-bottom:20px;}
+.pmod-btns{display:flex;gap:10px;justify-content:center;}
+.pmod-confirm{padding:10px 26px;border-radius:10px;background:rgba(240,176,48,.12);
+             border:1px solid rgba(240,176,48,.35);color:var(--gold);font-family:var(--font-ui);
+             font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;}
+.pmod-confirm:hover{background:rgba(240,176,48,.22);}
+.pmod-cancel{padding:10px 26px;border-radius:10px;background:transparent;
+            border:1px solid var(--border);color:var(--subtle);font-family:var(--font-ui);
+            font-size:12px;cursor:pointer;transition:background .15s;}
+.pmod-cancel:hover{background:rgba(255,255,255,.04);}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#1a2035;border-radius:2px;}
+</style>
+</head>
+<body>
+
+
+<div id="bgfade"></div>
+<canvas id="particles"></canvas>
+<div id="toast-container"></div>
+
+
+<div id="prestige-overlay">
+ <div id="prestige-modal">
+   <h2>✦ Prestige</h2>
+   <p>Reset energy and generators, keep upgrades. Each <strong style="color:var(--gold)">Prestige Star</strong> permanently boosts all production by <strong style="color:var(--gold)">+25%</strong>.</p>
+   <div id="prestige-modal-info"></div>
+   <div class="pmod-btns">
+     <button class="pmod-confirm" id="pconf-btn">Ascend ✦</button>
+     <button class="pmod-cancel"  id="pcancel-btn">Not yet</button>
+   </div>
+ </div>
+</div>
+
+
+<div id="bar">
+ <div id="bar-left">
+   <div id="logo-icon">
+     <img src="../images/logo.png" alt="Aria" onerror="this.outerHTML='✦'">
+   </div>
+   <span id="game-title">ARIA</span>
+   <span id="game-tag">IDLE</span>
+ </div>
+ <div id="bar-stats">
+   <div class="bar-stat">
+     <span class="bar-stat-label">All-time</span>
+     <span class="bar-stat-val" id="stat-total">0</span>
+   </div>
+   <div class="bar-stat">
+     <span class="bar-stat-label">Per second</span>
+     <span class="bar-stat-val" id="stat-cps">0</span>
+   </div>
+   <div class="bar-stat">
+     <span class="bar-stat-label">Prestige</span>
+     <span class="bar-stat-val gold" id="stat-prestige">×1.00</span>
+   </div>
+ </div>
+ <div id="bar-right">
+   <button class="bar-btn" id="save-btn">💾 Save</button>
+   <button class="bar-btn danger" id="reset-btn">↺ Reset</button>
+   <button class="bar-btn" id="shop-btn">⚗ Shop</button>
+ </div>
+</div>
+
+
+<div id="main">
+ <div class="ring" id="ring1"></div>
+ <div class="ring" id="ring2"></div>
+ <div class="ring" id="ring3"></div>
+ <button id="orb-btn">✦</button>
+ <div id="counter-block">
+   <div id="counter-val">0</div>
+   <div id="counter-sub">
+     <span class="counter-sub-item"><span id="sub-cps">0</span>/sec</span>
+     <span class="counter-sub-item">+<span id="sub-click">1</span>/click</span>
+   </div>
+ </div>
+ <div id="prestige-strip">
+   <div id="prestige-stars-wrap"></div>
+   <div id="prestige-progress-wrap">
+     <div id="prestige-progress-fill"></div>
+   </div>
+   <button id="prestige-btn" disabled>✦ <span id="prestige-pct">0%</span></button>
+ </div>
+</div>
+
+
+<div id="shop-panel">
+ <div id="shop-tabs">
+   <button class="tab-btn active" data-tab="upgrades">⬆ Upgrades <span class="tab-badge" id="badge-up">—</span></button>
+   <button class="tab-btn" data-tab="generators">⚙ Gens <span class="tab-badge" id="badge-gen">—</span></button>
+   <button class="tab-btn" data-tab="achievements">🏆 <span class="tab-badge gold" id="badge-ach">0</span></button>
+   <div id="buy-toggle">
+     <button class="bm-btn active" data-mode="1">×1</button>
+     <button class="bm-btn" data-mode="10">×10</button>
+     <button class="bm-btn" data-mode="0">Max</button>
+   </div>
+ </div>
+ <div id="shop-content"></div>
+</div>
+
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  PARTICLES  — fixed: window.innerWidth/Height instead of canvas.offsetWidth/Height
+//               fixed: particles now rise from bottom, fade before reaching top
+// ════════════════════════════════════════════════════════════
+const bgfade = document.getElementById('bgfade');
+const pCfg = { maxCount:80, spawnChance:.5, speedMult:1, hueMin:210, hueMax:240 };
+(function(){
+ const canvas = document.getElementById('particles');
+ const ctx = canvas.getContext('2d');
+ let W, H, particles = [];
+
+
+ function resize() {
+   // window.innerWidth/Height are always correct even before first paint
+   W = canvas.width  = window.innerWidth;
+   H = canvas.height = window.innerHeight;
+ }
+ resize();
+ window.addEventListener('resize', resize);
+
+
+ function rand(a, b) { return a + Math.random() * (b - a); }
+
+
+ function spawn() {
+   const s = rand(1.5, 5);
+   return {
+     x:       rand(0, W),      // spread across full width
+     y:       H + s,           // start just below the bottom edge
+     vy:      -rand(.18, .65), // always move upward (negative = toward top)
+     vx:      rand(-.12, .12),
+     size:    s,
+     life:    0,
+     maxLife: rand(180, 360),
+     sat:     rand(80, 100),
+     bright:  rand(60, 80)
+   };
+ }
+
+
+ // Seed initial particles scattered at various heights so screen isn't empty on load
+ for (let i = 0; i < 50; i++) {
+   const p = spawn();
+   p.y    = rand(0, H);
+   p.life = rand(0, p.maxLife * .7);
+   particles.push(p);
+ }
+
+
+ function frame() {
+   ctx.clearRect(0, 0, W, H);
+
+
+   if (particles.length < pCfg.maxCount && Math.random() < pCfg.spawnChance) {
+     particles.push(spawn());
+   }
+
+
+   for (let i = particles.length - 1; i >= 0; i--) {
+     const p = particles[i];
+     p.x += p.vx;
+     p.y += p.vy * pCfg.speedMult;  // moves upward
+     p.life++;
+
+
+     const t = p.life / p.maxLife;
+     // Lifetime fade: ramp in → hold → ramp out
+     let a = t < .2 ? t / .2 : t < .7 ? 1 : 1 - (t - .7) / .3;
+
+
+     // Height fade: particles become transparent as they approach the top ~40% of screen
+     // This keeps the orb area and top bar clean while the bottom stays lively
+     const fadeEdge = H * 0.45; // start fading when particle reaches 45% from top
+     let heightFade = 1;
+     if (p.y < fadeEdge) {
+       heightFade = Math.max(0, p.y / fadeEdge);
+     }
+
+
+     a = Math.max(0, Math.min(1, a)) * 0.7 * heightFade;
+
+
+     // Remove expired or fully-risen particles
+     if (p.life > p.maxLife || p.y < -p.size * 4) {
+       particles.splice(i, 1);
+       continue;
+     }
+     if (a < .005) continue;
+
+
+     const hue = rand(pCfg.hueMin, pCfg.hueMax);
+     const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 2.5);
+     g.addColorStop(0,  `hsla(${hue},${p.sat}%,${p.bright}%,${a})`);
+     g.addColorStop(.5, `hsla(${hue},${p.sat}%,${p.bright}%,${a * .5})`);
+     g.addColorStop(1,  `hsla(${hue},${p.sat}%,${p.bright}%,0)`);
+     ctx.beginPath();
+     ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
+     ctx.fillStyle = g;
+     ctx.fill();
+
+
+     ctx.beginPath();
+     ctx.arc(p.x, p.y, p.size * .6, 0, Math.PI * 2);
+     ctx.fillStyle = `hsla(${hue},100%,92%,${a * .9})`;
+     ctx.fill();
+   }
+   requestAnimationFrame(frame);
+ }
+ frame();
+})();
+
+
+function setParticleState(s){
+ if(s==='active'){pCfg.maxCount=160;pCfg.spawnChance=.95;pCfg.speedMult=3.5;pCfg.hueMin=210;pCfg.hueMax=240;bgfade.style.background='linear-gradient(to top,rgba(40,100,255,.55) 0%,rgba(20,60,200,.28) 40%,transparent 100%)';}
+ else if(s==='gold'){pCfg.maxCount=130;pCfg.spawnChance=.85;pCfg.speedMult=2.8;pCfg.hueMin=38;pCfg.hueMax=52;bgfade.style.background='linear-gradient(to top,rgba(200,140,20,.4) 0%,rgba(150,100,10,.2) 40%,transparent 100%)';setTimeout(()=>setParticleState('idle'),1400);}
+ else{pCfg.maxCount=80;pCfg.spawnChance=.5;pCfg.speedMult=1;pCfg.hueMin=210;pCfg.hueMax=240;bgfade.style.background='linear-gradient(to top,rgba(20,50,120,.20) 0%,rgba(15,35,90,.10) 40%,transparent 100%)';}
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  GAME DATA
+// ════════════════════════════════════════════════════════════
+const GENERATORS=[
+ {id:'probe',    name:'Star Probe',     icon:'🛸', baseCost:15,    baseCps:.1,   count:0},
+ {id:'satellite',name:'Orbital Array',  icon:'🛰️', baseCost:100,   baseCps:.5,   count:0},
+ {id:'station',  name:'Space Station',  icon:'🚀', baseCost:1100,  baseCps:4,    count:0},
+ {id:'asteroid', name:'Asteroid Miner', icon:'☄️', baseCost:12000, baseCps:20,   count:0},
+ {id:'nebula',   name:'Nebula Tap',     icon:'🌌', baseCost:130000,baseCps:100,  count:0},
+ {id:'pulsar',   name:'Pulsar Engine',  icon:'💫', baseCost:1.4e6, baseCps:400,  count:0},
+ {id:'blackhole',name:'Black Hole Core',icon:'🕳️', baseCost:2e7,   baseCps:2000, count:0},
+ {id:'galaxy',   name:'Galaxy Web',     icon:'🌠', baseCost:3.3e8, baseCps:9000, count:0},
+];
+
+
+const UPGRADES=[
+ {id:'click2',   name:'Focused Beam',      icon:'🔵',type:'click', sortKey:10,multiplier:2,  effect:'click ×2',  cost:100,   requires:null,     unlockAt:0,  maxLevel:1},
+ {id:'click4',   name:'Resonance Strike',  icon:'🔷',type:'click', sortKey:11,multiplier:2,  effect:'click ×2',  cost:1000,  requires:'click2', unlockAt:0,  maxLevel:1},
+ {id:'click8',   name:'Quantum Tap',       icon:'⚡', type:'click', sortKey:12,multiplier:4,  effect:'click ×4',  cost:15000, requires:'click4', unlockAt:0,  maxLevel:1},
+ {id:'click32',  name:'Stellar Resonance', icon:'🌟',type:'click', sortKey:13,multiplier:4,  effect:'click ×4',  cost:500000,requires:'click8', unlockAt:0,  maxLevel:1},
+ {id:'click128', name:'Cosmic Confluence', icon:'🌀',type:'click', sortKey:14,multiplier:8,  effect:'click ×8',  cost:2.5e7, requires:'click32',unlockAt:0,  maxLevel:1},
+ {id:'auto1',    name:'Auto-Pulsar',       icon:'⚙️',type:'autocps',sortKey:20,             effect:'+click/s',  cost:800,   requires:null,     unlockAt:50, maxLevel:1},
+ {id:'auto2',    name:'Dual Pulsar',       icon:'⚙️',type:'autocps',sortKey:21,             effect:'+click/s ×2',cost:40000,requires:'auto1',  unlockAt:0,  maxLevel:1},
+ {id:'crit1',    name:'Critical Mass',     icon:'💥',type:'crit',  sortKey:30,              effect:'10% → 5× crit',cost:2500,requires:null,     unlockAt:200,maxLevel:1},
+ {id:'crit2',    name:'Supernova Strike',  icon:'🌋',type:'crit',  sortKey:31,              effect:'crit mult ×2', cost:50000,requires:'crit1', unlockAt:0,  maxLevel:1},
+ {id:'crit3',    name:'Singularity Burst', icon:'🕳️',type:'crit',  sortKey:32,              effect:'+10% crit',    cost:5e5,  requires:'crit2', unlockAt:0,  maxLevel:1},
+ {id:'probe2',   name:'Better Thrusters',  icon:'🛸',type:'gen',genId:'probe',    sortKey:40,multiplier:2,effect:'probes ×2',   cost:400,   requires:null,unlockAt:0,maxLevel:3},
+ {id:'sat2',     name:'Solar Arrays',      icon:'🛰️',type:'gen',genId:'satellite',sortKey:41,multiplier:2,effect:'arrays ×2',   cost:4000,  requires:null,unlockAt:0,maxLevel:3},
+ {id:'sta2',     name:'Station Fusion',    icon:'🚀',type:'gen',genId:'station',  sortKey:42,multiplier:2,effect:'stations ×2', cost:44000, requires:null,unlockAt:0,maxLevel:3},
+ {id:'ast2',     name:'Deep Drill Array',  icon:'☄️',type:'gen',genId:'asteroid', sortKey:43,multiplier:2,effect:'miners ×2',   cost:440000,requires:null,unlockAt:0,maxLevel:3},
+ {id:'neb2',     name:'Nebula Condenser',  icon:'🌌',type:'gen',genId:'nebula',   sortKey:44,multiplier:2,effect:'nebulae ×2',  cost:4.4e6, requires:null,unlockAt:0,maxLevel:3},
+ {id:'pul2',     name:'Harmonic Lock',     icon:'💫',type:'gen',genId:'pulsar',   sortKey:45,multiplier:2,effect:'pulsars ×2',  cost:5.5e7, requires:null,unlockAt:0,maxLevel:3},
+ {id:'bh2',      name:'Hawking Tap',       icon:'🕳️',type:'gen',genId:'blackhole',sortKey:46,multiplier:2,effect:'BH cores ×2', cost:6.6e8, requires:null,unlockAt:0,maxLevel:3},
+ {id:'gal2',     name:'Dark Matter Siphon',icon:'🌠',type:'gen',genId:'galaxy',   sortKey:47,multiplier:2,effect:'galaxies ×2', cost:9e9,   requires:null,unlockAt:0,maxLevel:3},
+ {id:'glob1',    name:'Harmonic Field',    icon:'🔮',type:'global',sortKey:50,multiplier:1.5,effect:'all ×1.5',cost:75000, requires:null,   unlockAt:0,maxLevel:1},
+ {id:'glob2',    name:'Quantum Lattice',   icon:'🔬',type:'global',sortKey:51,multiplier:2,  effect:'all ×2',  cost:3.5e6, requires:'glob1',unlockAt:0,maxLevel:1},
+ {id:'glob3',    name:'Singularity Pulse', icon:'🌀',type:'global',sortKey:52,multiplier:2.5,effect:'all ×2.5',cost:1e8,   requires:'glob2',unlockAt:0,maxLevel:1},
+ {id:'glob4',    name:'Universal Constant',icon:'∞', type:'global',sortKey:53,multiplier:3,  effect:'all ×3',  cost:5e9,   requires:'glob3',unlockAt:0,maxLevel:1},
+];
+
+
+const ACHIEVEMENTS=[
+ {id:'first',  name:'First Light',       icon:'⭐',bonus:'+2% all', bonusMult:1.02,check:s=>s.totalClicks>=1},
+ {id:'c100',   name:'Centennial',        icon:'💯',bonus:'+3% all', bonusMult:1.03,check:s=>s.allTimeEarned>=100},
+ {id:'c1k',    name:'Rising Star',       icon:'🌟',bonus:'+5% all', bonusMult:1.05,check:s=>s.allTimeEarned>=1000},
+ {id:'c100k',  name:'Starfire',          icon:'🔥',bonus:'+5% all', bonusMult:1.05,check:s=>s.allTimeEarned>=1e5},
+ {id:'c1m',    name:'Nova Surge',        icon:'🌠',bonus:'+8% all', bonusMult:1.08,check:s=>s.allTimeEarned>=1e6},
+ {id:'c1b',    name:'Supernova',         icon:'💫',bonus:'+10% all',bonusMult:1.10,check:s=>s.allTimeEarned>=1e9},
+ {id:'c1t',    name:'Galactic Sovereign',icon:'👑',bonus:'+15% all',bonusMult:1.15,check:s=>s.allTimeEarned>=1e12},
+ {id:'gen5',   name:'Fleet Commander',   icon:'🛸',bonus:'+5% all', bonusMult:1.05,check:s=>GENERATORS.some(g=>g.count>=5)},
+ {id:'gen25',  name:'Squadron Leader',   icon:'🚀',bonus:'+8% all', bonusMult:1.08,check:s=>GENERATORS.some(g=>g.count>=25)},
+ {id:'gen100', name:'Armada Admiral',    icon:'🌌',bonus:'+12% all',bonusMult:1.12,check:s=>GENERATORS.some(g=>g.count>=100)},
+ {id:'cl50',   name:'Speed of Light',    icon:'⚡', bonus:'+4% all', bonusMult:1.04,check:s=>s.totalClicks>=50},
+ {id:'cl500',  name:'Photon Harvester',  icon:'🔵',bonus:'+6% all', bonusMult:1.06,check:s=>s.totalClicks>=500},
+ {id:'cl5k',   name:'Cosmic Clicker',    icon:'🌀',bonus:'+10% all',bonusMult:1.10,check:s=>s.totalClicks>=5000},
+ {id:'allgens',name:'Solar System',      icon:'🌍',bonus:'+15% all',bonusMult:1.15,check:s=>GENERATORS.every(g=>g.count>=1)},
+ {id:'gold1',  name:'Golden Touch',      icon:'✦', bonus:'+5% all', bonusMult:1.05,check:s=>s.goldenCollected>=1},
+ {id:'gold5',  name:'Stardust Hunter',   icon:'🌟',bonus:'+8% all', bonusMult:1.08,check:s=>s.goldenCollected>=5},
+ {id:'pres1',  name:'First Ascension',   icon:'✦', bonus:'+20% all',bonusMult:1.20,check:s=>s.prestigeCount>=1},
+ {id:'pres5',  name:'Cosmic Pilgrim',    icon:'🌟',bonus:'+30% all',bonusMult:1.30,check:s=>s.prestigeCount>=5},
+ {id:'pres10', name:'Eternal Ascendant', icon:'♾️', bonus:'+50% all',bonusMult:1.50,check:s=>s.prestigeCount>=10},
+];
+
+
+// ════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════
+let state={energy:0,totalEarned:0,allTimeEarned:0,totalClicks:0,
+          prestigeCount:0,goldenCollected:0,ownedUpgrades:{},achievements:{},lastSave:Date.now()};
+let buyMode=1, shopOpen=false;
+
+
+// ════════════════════════════════════════════════════════════
+//  DERIVED STATS
+// ════════════════════════════════════════════════════════════
+function getClickMult(){
+ let m=1;
+ ['click2','click4','click8','click32','click128'].forEach(id=>{
+   if(state.ownedUpgrades[id]) m*=UPGRADES.find(u=>u.id===id).multiplier;
+ });
+ return m;
+}
+function getClickPower(){return getClickMult()*getGlobalMult();}
+function getCritStats(){
+ let chance=0,mult=1;
+ if(state.ownedUpgrades['crit1']){chance+=.10;mult=5;}
+ if(state.ownedUpgrades['crit2']){mult*=2;}
+ if(state.ownedUpgrades['crit3']){chance+=.10;}
+ return{chance,mult};
+}
+function getGenMult(genId){
+ let m=1;
+ UPGRADES.filter(u=>u.type==='gen'&&u.genId===genId).forEach(u=>{
+   const lvl=state.ownedUpgrades[u.id]||0;
+   if(lvl>0) m*=Math.pow(u.multiplier,lvl);
+ });
+ return m;
+}
+function getGlobalMult(){
+ let m=1;
+ UPGRADES.filter(u=>u.type==='global').forEach(u=>{if((state.ownedUpgrades[u.id]||0)>0)m*=u.multiplier;});
+ ACHIEVEMENTS.forEach(a=>{if(state.achievements[a.id])m*=a.bonusMult;});
+ m*=(1+state.prestigeCount*.25);
+ return m;
+}
+function getAutoCps(){
+ if(!state.ownedUpgrades['auto1'])return 0;
+ return getClickPower()*(state.ownedUpgrades['auto2']?2:1);
+}
+function getTotalCps(){
+ let cps=0;
+ GENERATORS.forEach(g=>{cps+=g.count*g.baseCps*getGenMult(g.id);});
+ cps*=getGlobalMult();
+ cps+=getAutoCps();
+ return cps;
+}
+function getGenCost(gen,n){return Math.ceil(gen.baseCost*Math.pow(1.15,n!==undefined?n:gen.count));}
+function getBulkCost(gen,qty){let t=0;for(let i=0;i<qty;i++)t+=getGenCost(gen,gen.count+i);return t;}
+function getMaxBuy(gen){let c=0,t=0,e=state.energy;while(true){const n=getGenCost(gen,gen.count+c);if(e<n||c>=1000)break;e-=n;t+=n;c++;}return{count:c,cost:t};}
+function getUpgCost(u){return Math.ceil(u.cost*Math.pow(3,state.ownedUpgrades[u.id]||0));}
+function isOwned(u){return(state.ownedUpgrades[u.id]||0)>=u.maxLevel;}
+function isLocked(u){
+ if(u.requires&&!(state.ownedUpgrades[u.requires]>0))return true;
+ if(u.unlockAt&&state.allTimeEarned<u.unlockAt)return true;
+ return false;
+}
+function canAfford(u){return!isOwned(u)&&!isLocked(u)&&state.energy>=getUpgCost(u);}
+function canAffordGen(gen){
+ if(buyMode===0){return getMaxBuy(gen).count>0;}
+ return state.energy>=getBulkCost(gen,buyMode);
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  PRESTIGE
+// ════════════════════════════════════════════════════════════
+const PTHRESH=1e6;
+function canPrestige(){return state.totalEarned>=PTHRESH;}
+function openPrestige(){
+ if(!canPrestige())return;
+ const nm=(1+(state.prestigeCount+1)*.25).toFixed(2);
+ document.getElementById('prestige-modal-info').textContent=`Star #${state.prestigeCount+1} → all production ×${nm} permanently`;
+ document.getElementById('prestige-overlay').classList.add('visible');
+}
+function closePrestige(){document.getElementById('prestige-overlay').classList.remove('visible');}
+function doPrestige(){
+ closePrestige();
+ state.prestigeCount++;state.energy=0;state.totalEarned=0;
+ GENERATORS.forEach(g=>g.count=0);
+ saveGame();setParticleState('gold');
+ showToast(`✦ Ascended! Production ×${(1+state.prestigeCount*.25).toFixed(2)}`,true);
+ render();
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  CLICK
+// ════════════════════════════════════════════════════════════
+function doClick(cx,cy){
+ const orb=document.getElementById('orb-btn');
+ orb.classList.add('clicked');setTimeout(()=>orb.classList.remove('clicked'),100);
+ let power=getClickPower();
+ const crit=getCritStats();let isCrit=false;
+ if(crit.chance>0&&Math.random()<crit.chance){power*=crit.mult;isCrit=true;}
+ state.energy+=power;state.totalEarned+=power;state.allTimeEarned+=power;state.totalClicks++;
+ pCfg.maxCount=120;pCfg.spawnChance=.9;pCfg.speedMult=3;
+ setTimeout(()=>setParticleState('idle'),400);
+ if(cx!==undefined){spawnFloat(cx,cy,power,isCrit);}
+ else{const r=orb.getBoundingClientRect();spawnFloat(r.left+r.width/2,r.top+r.height/4,power,isCrit);}
+ checkAchs();updateDisplay();
+}
+function spawnFloat(x,y,val,crit){
+ const el=document.createElement('div');
+ el.className='float-num'+(crit?' crit':'');
+ el.textContent=(crit?'⚡ ':'+')+(crit?fmtNum(val):fmtNum(val));
+ el.style.left=(x-20)+'px';el.style.top=(y-10)+'px';
+ document.body.appendChild(el);setTimeout(()=>el.remove(),900);
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  GOLDEN EVENT
+// ════════════════════════════════════════════════════════════
+let goldenEl=null,goldenTimer=null;
+function scheduleGolden(){setTimeout(spawnGolden,70000+Math.random()*80000);}
+function spawnGolden(){
+ if(goldenEl)return;
+ const orb=document.getElementById('orb-btn'),r=orb.getBoundingClientRect();
+ goldenEl=document.createElement('div');goldenEl.id='golden-event';goldenEl.textContent='✦';
+ goldenEl.title='Click for a stellar bonus!';
+ const ox=(Math.random()-.5)*90,oy=(Math.random()-.5)*70-50;
+ goldenEl.style.cssText=`left:${r.left+r.width/2+ox-17}px;top:${r.top+r.height/2+oy-17}px;`;
+ goldenEl.addEventListener('click',collectGolden);
+ document.body.appendChild(goldenEl);
+ goldenTimer=setTimeout(()=>{removeGolden();scheduleGolden();},15000);
+}
+function collectGolden(){
+ clearTimeout(goldenTimer);
+ const bonus=Math.max(getTotalCps()*300,getClickPower()*50);
+ state.energy+=bonus;state.totalEarned+=bonus;state.allTimeEarned+=bonus;state.goldenCollected++;
+ showToast(`✦ Golden Star! +${fmtNum(bonus)} energy`,true);
+ setParticleState('gold');removeGolden();checkAchs();updateDisplay();scheduleGolden();
+}
+function removeGolden(){if(goldenEl){goldenEl.remove();goldenEl=null;}}
+
+
+// ════════════════════════════════════════════════════════════
+//  BUY
+// ════════════════════════════════════════════════════════════
+function buyGen(id){
+ const gen=GENERATORS.find(g=>g.id===id);
+ let qty,cost;
+ if(buyMode===0){const m=getMaxBuy(gen);if(m.count===0)return;qty=m.count;cost=m.cost;}
+ else{qty=buyMode;cost=getBulkCost(gen,qty);if(state.energy<cost)return;}
+ state.energy-=cost;gen.count+=qty;checkAchs();renderTab();updateDisplay();saveGame();
+}
+function buyUpg(id){
+ const u=UPGRADES.find(u=>u.id===id);
+ if(!u||isLocked(u)||isOwned(u))return;
+ const cost=getUpgCost(u);if(state.energy<cost)return;
+ state.energy-=cost;state.ownedUpgrades[u.id]=(state.ownedUpgrades[u.id]||0)+1;
+ const msgs={auto1:'⚙ Auto-Pulsar active!',auto2:'⚙ Dual Pulsar — automation doubled!',
+             crit1:'💥 Critical Mass — 10% crit for 5×!',crit2:'🌋 Crit multiplier doubled!',crit3:'🕳️ Crit chance now 20%!'};
+ if(msgs[id])showToast(msgs[id]);
+ checkAchs();renderTab();updateDisplay();saveGame();
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  ACHIEVEMENTS
+// ════════════════════════════════════════════════════════════
+function checkAchs(){
+ let changed=false;
+ ACHIEVEMENTS.forEach(a=>{
+   if(!state.achievements[a.id]&&a.check(state)){
+     state.achievements[a.id]=true;changed=true;
+     showToast(`🏆 ${a.name} — ${a.bonus}`,true);setParticleState('gold');
+   }
+ });
+ if(changed)renderTab();
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  GAME LOOP
+// ════════════════════════════════════════════════════════════
+let lastTick=Date.now();
+setInterval(()=>{
+ const now=Date.now(),delta=Math.min((now-lastTick)/1000,5);lastTick=now;
+ const cps=getTotalCps();
+ if(cps>0){const e=cps*delta;state.energy+=e;state.totalEarned+=e;state.allTimeEarned+=e;checkAchs();updateDisplay();}
+ if(now-state.lastSave>30000)saveGame();
+},100);
+
+
+// ════════════════════════════════════════════════════════════
+//  NUMBER FORMATTING
+// ════════════════════════════════════════════════════════════
+function fmtNum(n){
+ if(n===0)return'0';
+ if(n<.001)return n.toExponential(1);
+ if(n<1)   return n.toFixed(2);
+ if(n<10)  return n.toFixed(1);
+ if(n<1000)return Math.round(n).toLocaleString();
+ if(n<1e6) return(n/1e3).toFixed(1)+'K';
+ if(n<1e9) return(n/1e6).toFixed(2)+'M';
+ if(n<1e12)return(n/1e9).toFixed(2)+'B';
+ if(n<1e15)return(n/1e12).toFixed(2)+'T';
+ if(n<1e18)return(n/1e15).toFixed(2)+'Qa';
+ return(n/1e18).toFixed(2)+'Qi';
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  DISPLAY
+// ════════════════════════════════════════════════════════════
+function updateDisplay(){
+ document.getElementById('counter-val').textContent=fmtNum(state.energy);
+ const cps=getTotalCps();
+ document.getElementById('sub-cps').textContent=fmtNum(cps);
+ document.getElementById('sub-click').textContent=fmtNum(getClickPower());
+ document.getElementById('stat-total').textContent=fmtNum(state.allTimeEarned);
+ document.getElementById('stat-cps').textContent=fmtNum(cps);
+ document.getElementById('stat-prestige').textContent='×'+(1+state.prestigeCount*.25).toFixed(2);
+ const canP=canPrestige();
+ document.getElementById('prestige-btn').disabled=!canP;
+ const pct=Math.min(state.totalEarned/PTHRESH*100,100);
+ document.getElementById('prestige-pct').textContent=canP?'Ascend!':(pct.toFixed(0)+'%');
+ document.getElementById('prestige-progress-fill').style.width=pct+'%';
+ const sw=document.getElementById('prestige-stars-wrap');
+ if(state.prestigeCount===0){sw.innerHTML='';}
+ else{
+   const mx=Math.min(state.prestigeCount,12);
+   sw.innerHTML=Array.from({length:mx},()=>'<span class="pstar">✦</span>').join('');
+   if(state.prestigeCount>12)sw.innerHTML+=`<span style="font-size:10px;font-family:var(--font-mono);color:var(--gold);margin-left:3px">+${state.prestigeCount-12}</span>`;
+ }
+ const aff=UPGRADES.filter(u=>!isOwned(u)&&!isLocked(u)&&canAfford(u)).length;
+ const affG=GENERATORS.filter(g=>canAffordGen(g)).length;
+ const shopBadge=document.getElementById('shop-btn');
+ let existBadge=shopBadge.querySelector('.shop-badge');
+ if((aff+affG)>0){
+   if(!existBadge){existBadge=document.createElement('span');existBadge.className='shop-badge';shopBadge.appendChild(existBadge);}
+   existBadge.textContent=aff+affG;
+ } else {if(existBadge)existBadge.remove();}
+ const avail=UPGRADES.filter(u=>!isOwned(u)&&!isLocked(u)).length;
+ const bU=document.getElementById('badge-up');
+ bU.textContent=avail>0?(aff>0?`${aff}/${avail}`:avail):'✓';
+ bU.className='tab-badge'+(aff>0?' new':'');
+ const bG=document.getElementById('badge-gen');
+ bG.textContent=affG>0?affG:'—';
+ bG.className='tab-badge'+(affG>0?' new':'');
+ document.getElementById('badge-ach').textContent=Object.keys(state.achievements).length+'/'+ACHIEVEMENTS.length;
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  TAB RENDERING
+// ════════════════════════════════════════════════════════════
+let activeTab='upgrades';
+function switchTab(tab){
+ activeTab=tab;
+ document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+ document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+ document.getElementById('buy-toggle').style.visibility=tab==='generators'?'visible':'hidden';
+ renderTab();
+}
+function renderTab(){
+ const c=document.getElementById('shop-content');
+ if(activeTab==='upgrades')renderUpgrades(c);
+ else if(activeTab==='generators')renderGenerators(c);
+ else renderAchievements(c);
+}
+const SECTION_NAMES={click:'Click Power',autocps:'Automation',crit:'Critical Hits',gen:'Generator Boosts',global:'Universal Amplifiers'};
+function renderUpgrades(c){
+ const sorted=[...UPGRADES].sort((a,b)=>a.sortKey-b.sortKey||a.cost-b.cost);
+ const visible=sorted.filter(u=>!isLocked(u));
+ const hidden=sorted.filter(u=>isLocked(u));
+ let html='',lastType=null;
+ visible.forEach(u=>{
+   if(u.type!==lastType){html+=`<div class="sec-label">${SECTION_NAMES[u.type]||u.type}</div>`;lastType=u.type;}
+   const owned=isOwned(u),afford=!owned&&state.energy>=getUpgCost(u);
+   const lvl=state.ownedUpgrades[u.id]||0,isGold=u.type==='global';
+   let cls='upg-card';if(isGold)cls+=' gold-type';if(owned)cls+=' owned';else if(afford)cls+=' can-afford';
+   html+=`<div class="${cls}" data-upgrade="${u.id}">`;
+   html+=`<div class="upg-icon">${u.icon}</div><div class="upg-info">`;
+   html+=`<div class="upg-name">${u.name}</div><div class="upg-meta">`;
+   if(owned){html+=`<span class="upg-owned-tag">✓ Owned</span>`;}
+   else{html+=`<span class="upg-cost${isGold?' gc':''}">✦ ${fmtNum(getUpgCost(u))}</span>`;}
+   if(u.maxLevel>1&&!owned)html+=`<span class="upg-lvl">${lvl}/${u.maxLevel}</span>`;
+   html+=`<span class="upg-effect">${u.effect}</span>`;
+   html+=`</div></div></div>`;
+ });
+ if(hidden.length){
+   html+=`<div class="sec-label" style="margin-top:8px">Locked (${hidden.length})</div>`;
+   hidden.slice(0,5).forEach(u=>{
+     const reason=u.requires?'Requires '+UPGRADES.find(x=>x.id===u.requires)?.name:`Need ${fmtNum(u.unlockAt)} total`;
+     html+=`<div class="upg-card locked"><div class="upg-icon">🔒</div><div class="upg-info"><div class="upg-name">${u.name}</div><div class="upg-meta"><span class="upg-locked-note">${reason}</span></div></div></div>`;
+   });
+   if(hidden.length>5)html+=`<div class="sec-label" style="color:#141e2c">…${hidden.length-5} more</div>`;
+ }
+ c.innerHTML=html;
+}
+function renderGenerators(c){
+ let html='<div class="sec-label">Generators</div>';
+ GENERATORS.forEach(gen=>{
+   const perEach=gen.baseCps*getGenMult(gen.id)*getGlobalMult();
+   let costTxt,affordable;
+   if(buyMode===0){const m=getMaxBuy(gen);affordable=m.count>0;costTxt=affordable?`${fmtNum(m.cost)} ×${m.count}`:fmtNum(getGenCost(gen));}
+   else{const cost=getBulkCost(gen,buyMode);affordable=state.energy>=cost;costTxt=buyMode>1?`${fmtNum(cost)} ×${buyMode}`:fmtNum(cost);}
+   let cls='gen-card';if(affordable)cls+=' can-afford';
+   html+=`<div class="${cls}" data-gen="${gen.id}">`;
+   html+=`<div class="gen-icon">${gen.icon}</div>`;
+   html+=`<div class="gen-info"><div class="gen-name">${gen.name}</div>`;
+   html+=`<div class="gen-meta"><span class="gen-cost">✦ ${costTxt}</span>`;
+   html+=`<span class="gen-rate">${fmtNum(perEach)}/s ea</span></div></div>`;
+   html+=`<div class="gen-count">${gen.count}</div></div>`;
+ });
+ c.innerHTML=html;
+}
+function renderAchievements(c){
+ const unlocked=ACHIEVEMENTS.filter(a=>state.achievements[a.id]);
+ const locked=ACHIEVEMENTS.filter(a=>!state.achievements[a.id]);
+ let html='';
+ if(unlocked.length){
+   html+=`<div class="sec-label">Unlocked (${unlocked.length})</div>`;
+   unlocked.forEach(a=>{
+     html+=`<div class="ach-card unlocked"><div class="ach-icon">${a.icon}</div><div class="ach-info">`;
+     html+=`<div class="ach-name">${a.name} <span class="ach-tag">✓</span></div>`;
+     html+=`<div class="ach-bonus">${a.bonus}</div></div></div>`;
+   });
+ }
+ if(locked.length){
+   html+=`<div class="sec-label" style="margin-top:8px">Remaining (${locked.length})</div>`;
+   locked.forEach(a=>{
+     html+=`<div class="ach-card locked"><div class="ach-icon">${a.icon}</div><div class="ach-info">`;
+     html+=`<div class="ach-name">${a.name}</div>`;
+     html+=`<div class="ach-desc">${a.desc||''}</div>`;
+     html+=`<div class="ach-bonus">${a.bonus}</div></div></div>`;
+   });
+ }
+ c.innerHTML=html;
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════════════════
+function showToast(msg,gold=false){
+ const c=document.getElementById('toast-container'),el=document.createElement('div');
+ el.className='toast'+(gold?' gold':'');el.textContent=msg;c.appendChild(el);
+ setTimeout(()=>{el.style.animation='toast-out .3s ease forwards';setTimeout(()=>el.remove(),300);},2800);
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  SHOP TOGGLE
+// ════════════════════════════════════════════════════════════
+function toggleShop(){
+ shopOpen=!shopOpen;
+ document.getElementById('shop-panel').classList.toggle('open',shopOpen);
+ document.getElementById('shop-btn').classList.toggle('open',shopOpen);
+ if(shopOpen)renderTab();
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  SAVE / LOAD
+// ════════════════════════════════════════════════════════════
+const SAVE_KEY='aria_clicker_v2';
+function saveGame(){
+ state.lastSave=Date.now();
+ try{localStorage.setItem(SAVE_KEY,JSON.stringify({
+   energy:state.energy,totalEarned:state.totalEarned,allTimeEarned:state.allTimeEarned,
+   totalClicks:state.totalClicks,prestigeCount:state.prestigeCount,goldenCollected:state.goldenCollected,
+   ownedUpgrades:state.ownedUpgrades,achievements:state.achievements,
+   generators:GENERATORS.map(g=>({id:g.id,count:g.count})),lastSave:state.lastSave
+ }));}catch(e){console.warn('Save failed',e);}
+}
+function loadGame(){
+ try{
+   const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;
+   const d=JSON.parse(raw);
+   state.energy=d.energy||0;state.totalEarned=d.totalEarned||0;
+   state.allTimeEarned=d.allTimeEarned||d.totalEarned||0;
+   state.totalClicks=d.totalClicks||0;state.prestigeCount=d.prestigeCount||0;
+   state.goldenCollected=d.goldenCollected||0;state.ownedUpgrades=d.ownedUpgrades||{};
+   state.achievements=d.achievements||{};
+   if(d.generators)d.generators.forEach(dg=>{const g=GENERATORS.find(g=>g.id===dg.id);if(g)g.count=dg.count||0;});
+   if(d.lastSave){
+     const os=Math.min((Date.now()-d.lastSave)/1000,14400);
+     const oe=getTotalCps()*os;
+     if(oe>1){state.energy+=oe;state.totalEarned+=oe;state.allTimeEarned+=oe;
+              setTimeout(()=>showToast(`💤 +${fmtNum(oe)} while away`),700);}
+   }
+ }catch(e){console.warn('Load failed',e);}
+}
+function confirmReset(){
+ if(confirm('Reset ALL progress?')){
+   localStorage.removeItem(SAVE_KEY);
+   state={energy:0,totalEarned:0,allTimeEarned:0,totalClicks:0,prestigeCount:0,goldenCollected:0,ownedUpgrades:{},achievements:{},lastSave:Date.now()};
+   GENERATORS.forEach(g=>g.count=0);render();showToast('↺ Game reset.');
+ }
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  RENDER + EVENTS + INIT
+// ════════════════════════════════════════════════════════════
+function render(){if(shopOpen)renderTab();updateDisplay();}
+
+
+document.getElementById('orb-btn').addEventListener('click',e=>doClick(e.clientX,e.clientY));
+document.getElementById('prestige-btn').addEventListener('click',openPrestige);
+document.getElementById('pconf-btn').addEventListener('click',doPrestige);
+document.getElementById('pcancel-btn').addEventListener('click',closePrestige);
+document.getElementById('save-btn').addEventListener('click',()=>{saveGame();showToast('💾 Saved');});
+document.getElementById('reset-btn').addEventListener('click',confirmReset);
+document.getElementById('shop-btn').addEventListener('click',toggleShop);
+document.getElementById('shop-tabs').addEventListener('click',e=>{
+ const tab=e.target.closest('.tab-btn');if(tab)switchTab(tab.dataset.tab);
+});
+document.getElementById('buy-toggle').addEventListener('click',e=>{
+ const btn=e.target.closest('.bm-btn');if(!btn)return;
+ buyMode=parseInt(btn.dataset.mode);
+ document.querySelectorAll('.bm-btn').forEach(b=>b.classList.remove('active'));
+ btn.classList.add('active');if(activeTab==='generators')renderTab();
+});
+document.getElementById('shop-content').addEventListener('click',e=>{
+ const uc=e.target.closest('[data-upgrade]');if(uc){buyUpg(uc.dataset.upgrade);return;}
+ const gc=e.target.closest('[data-gen]');if(gc)buyGen(gc.dataset.gen);
+});
+document.addEventListener('keydown',e=>{
+ if(e.code==='Space'&&e.target===document.body){e.preventDefault();doClick();}
+ if(e.code==='KeyS'&&e.target===document.body)toggleShop();
+});
+
+
+loadGame();
+render();
+scheduleGolden();
+</script>
+</body>
+</html>
+
