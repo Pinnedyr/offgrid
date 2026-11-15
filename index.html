@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <script>
-var DOWNLOAD_ENABLED = false;
+var DOWNLOAD_ENABLED = true;
 var COMING_SOON_TEXT = "Coming soon...";
 document.documentElement.setAttribute('data-download', DOWNLOAD_ENABLED ? 'on' : 'off');
 </script>
@@ -562,6 +562,43 @@ footer{border-top:1px solid var(--line);padding:28px 0;color:#758078;font-size:1
     });
   }
   $('year').textContent = new Date().getFullYear();
+
+
+  var DL_NAME = 'Offgrid';
+  var DL_DIR = './downloads/';
+  var dlFallback = 'OFFGRID.html';
+  var dlReady = null;
+  function cleanName(x){ return String(x || '').replace(/[\\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim(); }
+  function loadDlName(){
+    if (dlReady) return dlReady;
+    dlReady = fetch('./version.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function(r){ if (!r.ok) throw new Error('bad status'); return r.json(); })
+      .then(function(j){
+        var rel = cleanName(j && j.release), ver = cleanName(j && j.version);
+        if (!ver) throw new Error('no version');
+        return [DL_NAME, rel, ver].filter(Boolean).join(' ') + '.html';
+      })
+      .catch(function(){ return dlFallback; })
+      .then(function(name){
+        document.querySelectorAll('[data-dl]').forEach(function(a){
+          if (!a.hasAttribute('download')) return;
+          a.setAttribute('download', name);
+          if (name !== dlFallback) a.setAttribute('href', DL_DIR + encodeURIComponent(name));
+        });
+        return name;
+      });
+    return dlReady;
+  }
+  if (typeof DOWNLOAD_ENABLED === 'undefined' || DOWNLOAD_ENABLED) {
+    loadDlName();
+    document.querySelectorAll('[data-dl]').forEach(function(a){
+      a.addEventListener('click', function(e){
+        if (a.dataset.go) return;            // second pass: let the browser download
+        e.preventDefault();                   // wait for the name, then download
+        loadDlName().then(function(){ a.dataset.go = '1'; a.click(); delete a.dataset.go; });
+      });
+    });
+  }
 
   /* ---------- reveal ---------- */
   var items = document.querySelectorAll('.reveal');
