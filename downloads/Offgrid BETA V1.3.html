@@ -3,7 +3,7 @@
 <head>
 <script>
 /* ===== OFFGRID version config (edit these two for each release) ===== */
-window.OFFGRID = { release: 'BETA', version: 'V1.2' };
+window.OFFGRID = { release: 'BETA', version: 'V1.3' };
 (function () {
   var o = window.OFFGRID;
   try { console.log('%cOFFGRID%c ' + o.release + ' ' + o.version, 'background:#c8ff5f;color:#11170d;font-weight:800;padding:2px 6px;border-radius:4px', 'color:#7ef0c0'); } catch (e) {}
@@ -13,6 +13,11 @@ window.OFFGRID = { release: 'BETA', version: 'V1.2' };
     tag.textContent = o.release + ' ' + o.version;
     tag.style.cssText = 'position:fixed;left:10px;bottom:8px;z-index:5;pointer-events:none;font:10px "DM Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:#a0aaa4;opacity:.55';
     document.body.appendChild(tag);
+    // keep the status bar's address text clear of this tag, whatever its width
+    var fit = function () { try { document.documentElement.style.setProperty('--vertag-w', Math.ceil(tag.getBoundingClientRect().width + 24) + 'px'); } catch (e) {} };
+    fit();
+    try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit); } catch (e) {}
+    window.addEventListener('resize', fit);
   }
   if (document.body) show(); else document.addEventListener('DOMContentLoaded', show);
 })();
@@ -209,6 +214,12 @@ form.address{flex:1;display:flex;gap:8px;min-width:0}
 .yt-m{margin-top:4px;font-size:12px;color:var(--muted)}
 .ytitle{font-size:20px;letter-spacing:-.03em;margin:6px 0 14px}
 .ymsg{padding:44px 10px;text-align:center;color:var(--muted);font-size:14px;line-height:2}
+.lcard.pink .tic{color:#ff6fb0;background:rgba(255,111,176,.10);border-color:rgba(255,111,176,.30)}
+.lcard.pink:before{background:radial-gradient(260px circle at var(--mx,50%) var(--my,0%),rgba(255,111,176,.16),transparent 60%)}
+.lcard.pink:hover,.lcard.pink:focus-visible{border-color:rgba(255,111,176,.5);box-shadow:0 22px 50px rgba(0,0,0,.45),0 0 40px rgba(255,111,176,.10)}
+.lcard.pink:hover .arr{color:#ff6fb0}
+.lcard.pink:hover .tic{background:rgba(255,111,176,.20)}
+.lcard.pink .rip i{background:radial-gradient(circle,rgba(255,111,176,.40),rgba(255,111,176,.16) 45%,transparent 70%)}
 .ychrow{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;margin-bottom:16px}
 .ych{flex:0 0 auto;display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-width:200px;cursor:pointer;background:transparent;color:var(--text);font-family:inherit;text-align:left}
 .ych:hover{border-color:var(--lime)}
@@ -322,22 +333,9 @@ form.address{flex:1;display:flex;gap:8px;min-width:0}
 .setseg button:hover{color:var(--text)}
 .setseg button.on{background:rgba(var(--acc-rgb),.14);color:var(--lime)}
 .setseg button:focus-visible{outline:2px solid var(--lime);outline-offset:1px}
-.setmodes{display:grid;gap:8px;padding:12px 0 2px;border-top:1px solid var(--line);margin-top:2px}
-.setmodes p{margin:0;color:var(--muted);font-size:11.5px;line-height:1.55}
-.setmodes p b{color:var(--text);font-size:11.5px;display:inline}
 .setbtns{display:flex;gap:8px;flex-wrap:wrap;padding:0 0 14px}
 .btn.sm{height:34px;padding:0 14px;font-size:12px}
 .setcard h4.sec{margin-top:22px}
-#lockmodal{z-index:70}
-.lockcard{text-align:center;max-width:380px}
-.lockicon{width:54px;height:54px;margin:0 auto 14px;border-radius:16px;display:grid;place-items:center;color:var(--lime);background:rgba(var(--acc-rgb),.10);border:1px solid rgba(var(--acc-rgb),.3)}
-.lockicon .ic{width:24px;height:24px}
-.lockcard h3{margin:0 0 6px;font-size:20px;letter-spacing:-.03em}
-.lockcard p{margin:0 0 16px;color:var(--muted);font-size:13px;line-height:1.6}
-.lockcard input{display:block;width:100%;height:42px;margin-bottom:8px;border:1px solid var(--line);background:var(--sf);color:var(--text);border-radius:10px;padding:0 14px;font:14px Manrope,system-ui,sans-serif;outline:none;text-align:center}
-.lockcard input:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(var(--acc-rgb),.10)}
-.lockerr{min-height:20px;color:#ff9b8a;font-size:12px;margin-bottom:6px}
-.lockcard .btn{width:100%}
 .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);opacity:0;pointer-events:none;z-index:90;background:rgba(var(--sf2-rgb),.96);border:1px solid rgba(var(--acc-rgb),.35);color:var(--text);padding:10px 18px;border-radius:12px;font:600 12px Manrope,system-ui,sans-serif;box-shadow:0 18px 50px rgba(0,0,0,.5);transition:opacity .25s,transform .25s}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .aictx{padding:10px 14px 0}
@@ -368,66 +366,10 @@ body.browsing .hero{display:none}
 body.browsing .viewer{display:block}
 body.browsing .status{display:flex}
 
-/* bottom bar: Browse | API switch, and the API fetcher view */
-.status{align-items:center}
+/* bottom status bar */
+.status{align-items:center;padding-left:var(--vertag-w,104px)}
 #statusUrl{flex:1 1 auto;min-width:0}
-.modesw{flex:0 0 auto;display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:8px;background:rgba(var(--ov-rgb),.03)}
-.modesw[hidden]{display:none}
-.modesw button{height:20px;padding:0 11px;border:0;border-radius:6px;background:transparent;color:var(--t2);font:600 10px 'DM Mono',monospace;letter-spacing:.06em;cursor:pointer;transition:color .2s,background .2s}
-.modesw button:hover{color:var(--text)}
-.modesw button.on{background:rgba(var(--acc-rgb),.14);color:var(--lime)}
-.modesw button:focus-visible{outline:2px solid var(--lime);outline-offset:1px}
-.apimore{flex:0 0 auto;width:26px;height:24px;border:1px solid var(--line);border-radius:8px;background:rgba(var(--ov-rgb),.03);color:var(--t2);display:inline-grid;place-items:center;cursor:pointer;padding:0;transition:color .2s,border-color .2s}
-.apimore[hidden]{display:none}
-.apimore:hover,.apimore[aria-expanded=true]{color:var(--lime);border-color:rgba(var(--acc-rgb),.4)}
-.apimore:focus-visible{outline:2px solid var(--lime);outline-offset:1px}
-.apimore .ic{width:14px;height:14px;transition:transform .2s}
-.apimore[aria-expanded=true] .ic{transform:rotate(180deg)}
-.apidrawer{flex:0 0 auto;display:none;flex-direction:column;gap:12px;border-top:1px solid var(--line);background:var(--sf);padding:12px 20px;max-height:45vh;overflow:auto}
-.apidrawer.on{display:flex}
-.apidrow{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
-.apidrow textarea.apihdrs{flex:1 1 280px;width:auto}
-.apidbtns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.apidbtns .modesw button{height:26px}
-.apivianote{flex:1 1 100%;margin:0;color:var(--muted);font-size:11.5px;line-height:1.5}
-.apivianote b{color:var(--text);font-weight:600}
-.apiapp{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg);min-height:0}
-.viewer.api .apiapp{display:flex}
-.viewer.api iframe.webframe{display:none}
-.apiwrap{display:flex;flex-direction:column;gap:10px;padding:14px 20px 16px;flex:1;min-height:0}
-.apireq,.apibar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.apimeth{display:inline-grid;place-items:center;height:36px;padding:0 12px;border-radius:9px;border:1px solid rgba(var(--acc-rgb),.35);background:rgba(var(--acc-rgb),.08);color:var(--lime);font:700 11px 'DM Mono',monospace;letter-spacing:.08em}
-.apireq input{flex:1 1 240px;min-width:0;height:36px;border:1px solid var(--line);background:var(--sf);color:var(--text);border-radius:9px;padding:0 12px;font:12px 'DM Mono',monospace;outline:none}
-.apireq input:focus{border-color:var(--lime)}
-textarea.apihdrs{width:100%;min-height:74px;max-height:160px;resize:vertical;border:1px solid var(--line);background:var(--sf);color:var(--text);border-radius:9px;padding:10px 12px;font:12px/1.6 'DM Mono',monospace;outline:none}
-textarea.apihdrs:focus{border-color:var(--lime)}
-.apimeta{display:flex;gap:6px;flex-wrap:wrap}
-.apichip{font:11px 'DM Mono',monospace;padding:4px 10px;border:1px solid var(--line);border-radius:999px;color:var(--t2);background:rgba(var(--ov-rgb),.03);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.apichip b{color:var(--text);font-weight:600}
-.apichip.ok{border-color:rgba(var(--acc-rgb),.4);color:var(--lime)}
-.apichip.ok b{color:var(--lime)}
-.apichip.err{border-color:rgba(255,155,138,.5);color:#ff9b8a}
-.apichip.err b{color:#ff9b8a}
-.apitab{height:30px;padding:0 13px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--t1);font:600 11px 'DM Mono',monospace;letter-spacing:.04em;cursor:pointer;transition:border-color .2s,color .2s}
-.apitab:hover,.apitab.on{border-color:var(--lime);color:var(--lime)}
-.apitab:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
-.apigrow{flex:1}
-.apiwrap.flush{padding:0;gap:0}
-.apiwrap.flush .apibar{padding:8px 20px}
-.apiwrap.flush .apibody{border:0;border-radius:0}
-.apibody{position:relative;flex:1;min-height:0;border:1px solid var(--line);border-radius:12px;overflow:auto;background:var(--sf)}
-.apipre{margin:0;padding:14px 16px;font:12px/1.6 'DM Mono',monospace;white-space:pre-wrap;word-break:break-word;color:var(--tint);tab-size:2}
-.apipre .tk-k{color:#8fd3ff}.apipre .tk-s{color:var(--lime)}.apipre .tk-n{color:#ffb86b}.apipre .tk-b{color:#ff8fb1}
-.apistage{min-height:100%;display:grid;place-items:center;padding:18px;box-sizing:border-box;background:repeating-conic-gradient(#121815 0 25%,#0d120f 0 50%) 50%/20px 20px}
-.apistage img,.apistage video{max-width:100%;max-height:70vh;border-radius:6px}
-.apistage audio{width:min(520px,100%)}
-.apistage .apispec{font-size:44px;line-height:1.3;text-align:center;color:var(--text)}
-.apistage .apispec small{display:block;font-size:18px;color:var(--muted);margin-top:8px}
-.apimsg{padding:44px 20px;text-align:center;color:var(--muted);font-size:14px;line-height:1.9}
-table.apihdrt{width:100%;border-collapse:collapse;font:12px/1.5 'DM Mono',monospace}
-table.apihdrt td{padding:8px 14px;border-bottom:1px solid var(--line);vertical-align:top;word-break:break-all}
-table.apihdrt td:first-child{color:var(--lime);width:30%;min-width:120px}
-@media(max-width:620px){.apiwrap.flush .apibar{padding:8px 12px}.apidrawer{padding:10px 12px}.apiwrap{padding:10px 12px 12px}.status{gap:10px;padding:7px 12px}}
+@media(max-width:620px){.status{gap:10px;padding-top:7px;padding-bottom:7px;padding-right:12px}}
 
 @media(max-width:900px){.hero{flex:1 0 auto;overflow:visible}.lwrap{grid-template-columns:minmax(0,1fr);row-gap:32px;align-items:start;padding-top:28px}}
 @media(max-height:780px) and (min-width:901px){.lsub{display:none}.lcard .d{font-size:12px;line-height:1.45}.lcard{padding:13px 15px}.lpanel{padding:14px}.lpower{margin-top:20px}.hero h1{margin-top:16px}}
@@ -719,7 +661,6 @@ body.fsx.fs .topbar{transform:translateY(-100%);opacity:0}
 body.fsx.fs .status{transform:translateY(100%);opacity:0}
 body.fsx.fs .viewer{top:0!important;bottom:0!important}
 body.fsdone .topbar,body.fsdone .status{visibility:hidden}
-body.fsx .apidrawer{display:none!important}
 .fshot{position:fixed;left:0;right:0;top:0;height:10px;z-index:48;display:none}
 body.fsdone .fshot{display:block}
 .fsexit{position:fixed;left:50%;top:0;z-index:49;width:72px;height:36px;display:grid;place-items:center;padding:0;border:1px solid rgba(var(--acc-rgb),.4);border-top:0;border-radius:0 0 20px 20px;background:rgba(var(--sf-rgb),.94);color:var(--lime);cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 12px 32px rgba(0,0,0,.55),0 0 22px rgba(var(--acc-rgb),.12);transform:translate(-50%,-115%);opacity:0;visibility:hidden;transition:transform .38s cubic-bezier(.2,1.25,.3,1),opacity .22s ease,background .2s,visibility 0s linear .38s}
@@ -996,6 +937,14 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
 .lkpresets{display:flex;gap:8px;margin-top:14px}
 .lkpresets .btn{flex:1}
 @media(max-width:620px){.lpencil{bottom:12px;right:12px}.lpop{right:14px;bottom:64px}}
+/* AI chat icon: always green, whatever theme is picked (themes only change --lime / --acc-rgb) */
+:root{--ai-green:#2fcf6a;--ai-green-rgb:47,207,106}
+#chipai .tic{color:var(--ai-green);background:rgba(var(--ai-green-rgb),.12);border-color:rgba(var(--ai-green-rgb),.32)}
+#chipai:hover .tic,#chipai:focus-visible .tic{background:rgba(var(--ai-green-rgb),.2)}
+.aihead b .ic{color:var(--ai-green)}
+.aiempty-ic{color:var(--ai-green);background:rgba(var(--ai-green-rgb),.12);border-color:rgba(var(--ai-green-rgb),.32)}
+/* YouTube tab icon: always red, whatever theme is picked */
+.tab[data-kind="youtube"]>.ic{color:#ff4b4b}
 </style>
 </head>
 <body>
@@ -1097,7 +1046,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
    <div class="lright">
     <div class="lgrid">
       <button class="lcard rv" style="--i:5" id="chipai" type="button"><svg class="ic arr" aria-hidden="true"><use href="#i-fwd"/></svg><span class="tic"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg></span><b>AI chat</b><span class="d">Ask questions, get ideas, and get help with homework or writing.</span></button>
-      <button class="lcard red rv" style="--i:6" type="button" data-go="https://www.youtube.com/"><svg class="ic arr" aria-hidden="true"><use href="#i-fwd"/></svg><span class="tic"><svg class="ic" aria-hidden="true"><use href="#i-youtube"/></svg></span><b>YouTube</b><span class="d">Trending videos, music, gaming and your favourite channels.</span></button>
+      <button class="lcard red rv" style="--i:6" type="button" data-go="https://www.youtube.com/"><svg class="ic arr" aria-hidden="true"><use href="#i-fwd"/></svg><span class="tic"><svg class="ic" aria-hidden="true"><use href="#i-youtube"/></svg></span><b>YouTube</b><span class="d">Trending videos, music, gaming, news and your favourite channels.</span></button>
       <button class="lcard blue rv" style="--i:7" type="button" data-go="https://wtfq.online/"><svg class="ic arr" aria-hidden="true"><use href="#i-fwd"/></svg><span class="tic"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg></span><b>What The Facqkuit</b><span class="d">Visit our home on the web and see what is new.</span></button>
       <button class="lcard blue rv" style="--i:10" type="button" data-go="offgrid://settings"><svg class="ic arr" aria-hidden="true"><use href="#i-fwd"/></svg><span class="tic"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg></span><b>Settings</b><span class="d">Make it yours: tab look, bookmarks bar and more.</span></button>
     </div>
@@ -1154,7 +1103,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       <div class="setnavtitle">Settings</div>
       <button class="setnavbtn on" type="button" data-sec="general" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg><span>General</span></button>
       <button class="setnavbtn" type="button" data-sec="appearance"><svg class="ic" aria-hidden="true"><use href="#i-palette"/></svg><span>Appearance</span></button>
-      <button class="setnavbtn" type="button" data-sec="privacy"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg><span>Privacy &amp; access</span></button>
+      <button class="setnavbtn" type="button" data-sec="privacy"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg><span>Privacy</span></button>
       <button class="setnavbtn" type="button" data-sec="bookmarks"><svg class="ic" aria-hidden="true"><use href="#i-star"/></svg><span>Bookmarks</span></button>
       <button class="setnavbtn" type="button" data-sec="history"><svg class="ic" aria-hidden="true"><use href="#i-history"/></svg><span>History</span></button>
     </div>
@@ -1167,14 +1116,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
           <div class="setline"><div><b>Show bookmarks bar</b><small>Shows your bookmarks in a bar under the address bar. Drag to reorder, right-click to rename, edit or delete.</small></div><label class="switch"><input type="checkbox" id="setBmbar" aria-label="Show bookmarks bar"><i></i></label></div>
         </div>
         <div class="spcard">
-          <div class="setline"><div><b>Default page mode</b><small>How websites and web searches are opened. You can still switch any tab from the bar at the bottom of the page.</small></div><div class="setseg" id="setMode" role="group" aria-label="Default page mode"><button type="button" data-m="browse" aria-pressed="true">Browse</button><button type="button" data-m="api" aria-pressed="false">API</button></div></div>
-          <div class="setmodes">
-            <p><b>Browse</b> runs the site live, like a normal tab, with everything routed through the relay. It keeps you anonymous and gets you past most blocks.</p>
-            <p><b>API</b> fetches each page, or the results page of a search, in a single request and shows you the result. It gets through even the strictest blocks, but can be a little slower to load. In the expanded bar you can choose how a page is requested: <b>Fetch</b> (the default) or <b>GET</b>.</p>
-          </div>
-        </div>
-        <div class="spcard">
-          <div class="setline"><div><b>Welcome tour</b><small>Three quick missions: disguise your tab, then try Browse and API mode on a real site. It shows once by itself.</small></div><button class="btn ghost sm" id="tourAgain" type="button">Show again</button></div>
+          <div class="setline"><div><b>Welcome tour</b><small>Two quick missions: disguise your tab, then open a real site. It shows once by itself.</small></div><button class="btn ghost sm" id="tourAgain" type="button">Show again</button></div>
         </div>
         <div class="spcard">
           <div class="setline"><div><b>Version</b><small>You are running this build of OFFGRID.</small></div><span class="verbadge" id="verBadge"><b id="verRelease">BETA</b><span id="verNum">V1.1</span></span></div>
@@ -1205,9 +1147,8 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       </section>
 
       <section class="setsec" data-sec="privacy">
-        <div class="sechead"><h2>Privacy &amp; access</h2><p>Control logins and cookies, and who can use this relay.</p></div>
+        <div class="sechead"><h2>Privacy</h2><p>Control logins and cookies.</p></div>
         <div class="spcard">
-          <div class="setline"><div><b>Access</b><small id="accStatus"></small></div><button class="btn ghost sm" id="accBtn" type="button">Unlock</button></div>
           <div class="setline"><div><b>Remember logins</b><small>Keeps cookies per site so sign-ins and consent choices stick. Stored in this browser only.</small></div><label class="switch"><input type="checkbox" id="setCookies" aria-label="Remember logins"><i></i></label></div>
         </div>
         <div class="spcard pad">
@@ -1239,9 +1180,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     <div class="engrow" id="engrow"></div>
     <div id="srchlist"></div>
   </div></div>
-  <div class="apiapp" id="apiapp"><div class="apiwrap">
-    <div class="apibody" id="apibody"></div>
-  </div></div>
   <div class="banner" id="banner"><span id="bannerText"></span><button class="btn ghost" id="bannerBtn" type="button"></button></div>
   <div class="notice" id="notice">
     <h3 id="noticeTitle"></h3>
@@ -1250,17 +1188,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   </div>
 </section>
 
-<div class="apidrawer" id="apidrawer" role="region" aria-label="API request info">
-    <div class="apibar"><div class="apibar" id="apitabs" role="tablist" aria-label="Response views"></div><span class="apigrow"></span><div class="apibar" id="apiacts"></div></div>
-  <div class="apimeta" id="apimeta"></div>
-  <p class="apivianote" id="apivianote"></p>
-  <div class="apidrow">
-    <textarea class="apihdrs" id="apihdrs" spellcheck="false" aria-label="Request headers, one per line" placeholder="Request headers, one per line, then press Send&#10;Authorization: Bearer …&#10;Accept: application/json"></textarea>
-    <div class="apidbtns"><div class="modesw" id="apivia" role="group" aria-label="How the request is sent"><button type="button" data-v="fetch" class="on" aria-pressed="true" title="fetch() through the worker's page relay, like Browse mode">Fetch</button><button type="button" data-v="get" aria-pressed="false" title="One GET request to the worker's API fetcher, answered as JSON">GET</button></div><button class="btn sm" id="apisend" type="button">Send</button><button class="btn ghost sm" id="apiscripts" type="button" aria-pressed="true" title="Run the page's scripts in the preview">Scripts: on</button></div>
-  </div>
-</div>
-
-<footer class="status" id="status"><span id="statusUrl">—</span><span id="statusTitle"></span><button class="apimore" id="apimore" type="button" hidden aria-expanded="false" aria-controls="apidrawer" title="Show request info" aria-label="Show request info"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button><div class="modesw" id="modesw" role="group" aria-label="How to load this page" hidden><button type="button" data-m="browse" class="on" aria-pressed="true" title="Normal browsing: the page runs live in the frame">Browse</button><button type="button" data-m="api" aria-pressed="false" title="API: the page is requested and shown here with its request details. Pick Fetch or GET in the expanded bar">API</button></div></footer>
+<footer class="status" id="status"><span id="statusUrl">—</span><span id="statusTitle"></span></footer>
 
 <div class="fshot" id="fshot"></div>
 <button class="fsexit" id="fsexit" type="button" title="Exit full screen (Esc)" aria-label="Exit full screen"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
@@ -1290,7 +1218,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   <div class="aimain">
     <div class="aihead"><button class="aibt aibt-hist" id="aihistbtn" title="Saved chats" aria-label="Saved chats" type="button"><svg class="ic" aria-hidden="true"><use href="#i-history"/></svg><span>Chats</span></button>
       <b><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg> AI chat</b>
-      <label class="aimodel"><span>Model</span><select id="aimodel" aria-label="Model"></select></label>
       <button class="aibt" id="aiclear" title="New chat" aria-label="New chat" type="button"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span>New chat</span></button></div>
     <div class="aistat" id="aistat" role="status"></div>
     <div class="aimsgs" id="aimsgs" aria-label="Conversation"></div>
@@ -1308,16 +1235,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   </div>
 </div>
 
-<div class="modal" id="lockmodal" role="dialog" aria-modal="true" aria-label="Unlock">
-  <div class="setcard lockcard">
-    <div class="lockicon"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg></div>
-    <h3>Unlock OFFGRID</h3>
-    <p>This relay is password protected. Enter the access password to continue.</p>
-    <input id="lockPw" type="password" autocomplete="current-password" placeholder="Access password" aria-label="Access password">
-    <div class="lockerr" id="lockErr" role="alert"></div>
-    <button class="btn" id="lockBtn" type="button">Unlock</button>
-  </div>
-</div>
 <div class="modal" id="bmmodal" role="dialog" aria-modal="true" aria-labelledby="bmmTitle">
   <div class="setcard bmcard">
     <h3 id="bmmTitle">Edit bookmark</h3>
@@ -1377,7 +1294,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
 
   var loadTimer = null, bannerFn = null;
   var tabs = [], T = null, tabSeq = 0, closedTabs = [];
-  var tok = '', access = { locked: false, authed: true }, pendingStart = false;
   var ytapp = $('ytapp'), ytgrid = $('ytgrid'), ytq = $('ytq'), ytplayer = $('ytplayer');
   var ytKey = '', ytTok = 0, curTitle = '';
   var NOTES_KEY = 'offgrid.notes.v1', notesTimer = 0, notesLoaded = false;
@@ -1389,6 +1305,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     if (!s) return null;
     if (/^https?:\/\//i.test(s)) return s;
     if (/^offgrid:\/\/ai\/?$/i.test(s)) return 'offgrid://ai';
+    if (/^offgrid:\/\/entertainment\/?$/i.test(s)) return 'https://www.youtube.com/';
     var sm = /^offgrid:\/\/(?:settings\/?|settings\/(general|appearance|privacy|bookmarks|history)\/?|(bookmarks|history)\/?)$/i.exec(s);
     if (sm) { var ss = (sm[1] || sm[2] || '').toLowerCase(); return 'offgrid://settings' + (ss && ss !== 'general' ? '/' + ss : ''); }
     if (/^offgrid:\/\/search\?/i.test(s)) return s;
@@ -1398,7 +1315,8 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     return srchUrl(s);
   }
 
-  function proxied(url, l) { return WORKER + '/?url=' + encodeURIComponent(url) + (l ? '&lite=1' : '') + (settings.cookies === false ? '&nc=1' : '') + kq(); }
+  function credFetch(url, init) { return fetch(url, init || {}); }
+  function proxied(url, l) { return WORKER + '/?url=' + encodeURIComponent(url) + (l ? '&lite=1' : '') + (settings.cookies === false ? '&nc=1' : ''); }
 
   function youtubeId(url) {
     var u;
@@ -1492,7 +1410,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     $('statusUrl').textContent = url || '—';
     $('statusTitle').textContent = title || '';
     curTitle = (tabTitle === undefined ? title : tabTitle) || ''; applyTitle();
-    syncMode(); syncAddr();
+    syncAddr();
   }
 
   function showNotice(title, text) {
@@ -1601,6 +1519,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       d.tabIndex = 0;
       d.title = tabLabel(t);
       var kind = tabKind(t), fu = kind === 'globe' ? favFor(t) : '';
+      d.setAttribute('data-kind', kind);
       if (fu) { var fi = el('img', 'favimg'); fi.alt = ''; fi.draggable = false; fi.src = fu; d.appendChild(fi); }
       else d.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-' + kind + '"/></svg>';
       d.appendChild(el('span', null, tabLabel(t)));
@@ -1694,7 +1613,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     if (cu) { closedTabs.push(cu); if (closedTabs.length > 10) closedTabs.shift(); }
     if (t.frame) { t.frame.remove(); t.frame = null; }
     t.ftok = (t.ftok || 0) + 1; if (t.ctl) { try { t.ctl.abort(); } catch (e) {} t.ctl = null; } // a late answer for a closed tab is ignored
-    apiDrop(t);
     tabs.splice(i, 1);
     if (!tabs.length) { addTab(null); return; }
     if (T === t) switchTo(tabs[Math.min(i, tabs.length - 1)]);
@@ -1714,7 +1632,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     openFx();
     syncAi();
     updateNav();
-    viewer.classList.remove('msg', 'api');
+    viewer.classList.remove('msg');
     setBanner(null);
     progress(false);
     syncFrames();
@@ -1724,15 +1642,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       yt.src = 'about:blank'; vpClose(); ytKey = '';
       addr.value = ''; setStatus('', '');
       renderLanding();
-      return;
-    }
-    if (t.api && isWebUrl(url)) {
-      setBrowsing(true);
-      viewer.classList.remove('yt', 'srch', 'aitab', 'set'); viewer.classList.add('api');
-      yt.src = 'about:blank'; vpClose(); ytKey = '';
-      addr.value = url;
-      if (t.apiRes) { setStatus(url, apiStatusText(t.apiRes), t.title); apiPaint(t); }
-      else show(url);
       return;
     }
     if (!srchRoute(url) && !ytRoute(url) && !aiRoute(url) && t.frame && t.live) {
@@ -1751,8 +1660,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   function show(url) {
     var t = T;
     openFx();
-    if (t.api === undefined && apiRoute(url)) t.api = (typeof settings !== 'undefined' && settings.mode === 'api'); // the default page mode; the bar at the bottom overrides it per tab
-    viewer.classList.remove('msg', 'api');
+    viewer.classList.remove('msg');
     addr.value = url;
     setBrowsing(true);
     syncAi();
@@ -1806,8 +1714,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       renderTabs(); saveTabs();
       return;
     }
-
-    if (t.api) { apiShow(t, url); return; }
 
     viewer.classList.remove('yt', 'aitab');
     yt.src = 'about:blank'; vpClose(); ytKey = '';
@@ -1885,126 +1791,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       return (dt ? dt[0] : '') + doc.documentElement.outerHTML;
     }).catch(function () { return html; });
   }
-  /* API mode: the script src files, stylesheets and images of a fetched page are asked for through the API fetcher
-     (/_og/get, JSON answer) and put into the page in place: scripts and styles as text, images as data: addresses.
-     Anything that cannot be fetched that way is left alone, so the browser loads it through the normal relay. */
-  function apiAsset(real, rewrite, pageUrl) {
-    var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 25000);
-    var path = '/_og/get?url=' + encodeURIComponent(real) + (pageUrl ? '&ref=' + encodeURIComponent(pageUrl) : '') + (rewrite ? '&rewrite=1' : '&render=0');
-    return wfetch(path, { signal: ctl.signal }).then(function (r) { return r.json(); }).then(function (j) {
-      clearTimeout(timer);
-      return (!j || j.error || !j.ok || j.tooBig || j.truncated) ? null : j;
-    }, function () { clearTimeout(timer); return null; });
-  }
-  function apiDataUri(j) {
-    var m = j.mime || 'application/octet-stream';
-    return j.encoding === 'base64' ? 'data:' + m + ';base64,' + j.body : 'data:' + m + ';charset=utf-8,' + encodeURIComponent(j.body || '');
-  }
-  function inlineApiAssets(html, t, my, pageUrl) {
-    var doc;
-    try { doc = new DOMParser().parseFromString(html, 'text/html'); } catch (e) { return Promise.resolve(html); }
-    var prefix = WORKER + '/?url=', jobs = [], late = [], cache = {}, MAXJOBS = 160, MAXBYTES = 24 * 1048576, used = 0;
-    var realOf = function (v) {
-      if (!v || String(v).indexOf(prefix) !== 0) return '';
-      try { return new URL(v).searchParams.get('url') || ''; } catch (e) { return ''; }
-    };
-    var inNoscript = function (n) { return !!(n.closest && n.closest('noscript')); };
-    var add = function (real, rewrite, apply) {
-      if (real && jobs.length < MAXJOBS) jobs.push({ real: real, rewrite: rewrite, apply: apply });
-    };
-    var isImg = function (j) { return j.kind === 'image' || j.kind === 'svg'; };
-
-    // scripts (not in lite mode, where the worker has already removed them)
-    if (!t.lite && !t.apiLite) {
-      Array.prototype.forEach.call(doc.querySelectorAll('script[src]'), function (s) {
-        var ty = (s.getAttribute('type') || '').trim().toLowerCase(), real = realOf(s.getAttribute('src'));
-        if (!real || inNoscript(s)) return;
-        if (ty && ty.indexOf('javascript') < 0 && ty.indexOf('ecmascript') < 0) return; // modules and data blocks stay as they are
-        if (s.hasAttribute('nomodule') || s.hasAttribute('onload') || s.hasAttribute('onerror')) return;
-        add(real, true, function (j) {
-          if (j.encoding !== 'text' || !s.parentNode) return;
-          var n = doc.createElement('script');
-          Array.prototype.forEach.call(s.attributes, function (a) {
-            if (a.name !== 'src' && a.name !== 'defer' && a.name !== 'async') n.setAttribute(a.name, a.value);
-          });
-          n.setAttribute('data-og-src', real);
-          n.textContent = j.body.replace(/<\/(script)/gi, '<\\/$1').replace(/<\!--/g, '<\\!--');
-          if (s.hasAttribute('defer') || s.hasAttribute('async')) { s.parentNode.removeChild(s); late.push(n); } // run after the page is read, like defer does
-          else s.parentNode.replaceChild(n, s);
-        });
-      });
-    }
-
-    // stylesheets: the worker hands them back with their url(...) / @import already pointed at it
-    Array.prototype.forEach.call(doc.querySelectorAll('link[href]'), function (l) {
-      if (!/(^|\s)stylesheet(\s|$)/i.test(l.getAttribute('rel') || '') || inNoscript(l) || l.hasAttribute('onload')) return;
-      var real = realOf(l.getAttribute('href'));
-      add(real, true, function (j) {
-        if (j.encoding !== 'text' || !l.parentNode) return;
-        var st = doc.createElement('style');
-        if (l.getAttribute('media')) st.setAttribute('media', l.getAttribute('media'));
-        st.setAttribute('data-og-href', real);
-        st.textContent = j.body.replace(/<\/(style)/gi, '<\\/$1');
-        l.parentNode.replaceChild(st, l);
-      });
-    });
-
-    // images: <img>, <input type=image> and video posters
-    var firstOfSet = function (v) { var f = String(v || '').split(',')[0].trim().split(/\s+/)[0]; return f || ''; };
-    Array.prototype.forEach.call(doc.querySelectorAll('img, input[type=image]'), function (im) {
-      if (inNoscript(im)) return;
-      var real = realOf(im.getAttribute('src')) || realOf(firstOfSet(im.getAttribute('srcset')));
-      add(real, false, function (j) {
-        if (!isImg(j)) return;
-        var u = apiDataUri(j);
-        if (used + u.length > MAXBYTES) return;
-        used += u.length;
-        im.setAttribute('src', u);
-        im.removeAttribute('srcset'); im.removeAttribute('sizes'); // the one fetched file replaces the choice list
-        var pic = im.parentNode;
-        if (pic && pic.tagName === 'PICTURE') Array.prototype.slice.call(pic.querySelectorAll('source')).forEach(function (so) { pic.removeChild(so); });
-      });
-    });
-    Array.prototype.forEach.call(doc.querySelectorAll('video[poster]'), function (v) {
-      var real = realOf(v.getAttribute('poster'));
-      add(real, false, function (j) {
-        if (!isImg(j)) return;
-        var u = apiDataUri(j);
-        if (used + u.length > MAXBYTES) return;
-        used += u.length;
-        v.setAttribute('poster', u);
-      });
-    });
-
-    if (!jobs.length) return Promise.resolve(html);
-
-    // fetch six at a time; the same address is only asked for once
-    var run = function () {
-      return new Promise(function (resolve) {
-        var i = 0, active = 0;
-        var next = function () {
-          while (active < 6 && i < jobs.length) {
-            (function (job) {
-              active++;
-              var k = (job.rewrite ? 'r:' : 'b:') + job.real;
-              var p = cache[k] || (cache[k] = apiAsset(job.real, job.rewrite, pageUrl));
-              p.then(function (j) { job.j = j; }).then(function () { active--; next(); });
-            })(jobs[i++]);
-          }
-          if (i >= jobs.length && !active) resolve();
-        };
-        next();
-      });
-    };
-    return run().then(function () {
-      if (my !== t.ftok) return html;
-      jobs.forEach(function (job) { if (job.j) { try { job.apply(job.j); } catch (e) {} } });
-      var host = doc.body || doc.documentElement;
-      late.forEach(function (n) { host.appendChild(n); });
-      var dt = /^\s*<!doctype[^>]*>/i.exec(html);
-      return (dt ? dt[0] : '') + doc.documentElement.outerHTML;
-    }).catch(function () { return html; });
-  }
   function loadPage(t, url) {
     if (t.ctl) { try { t.ctl.abort(); } catch (e) {} }
     var my = t.ftok = (t.ftok || 0) + 1;
@@ -2014,9 +1800,15 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     t.fetchFailed = false; t.httpStatus = 0; // read by the welcome tour
     var post = t.post || null; t.post = null; // a form the page submitted with POST: sent through the worker, the answer is drawn like any page
     var finit = { signal: ctl.signal };
+    var ckh = siteHeader(siteOf(url));
+    if (ckh) finit.headers = { 'X-OG-Cookie': ckh };
     if (post) { finit.method = 'POST'; finit.body = post.body; }
-    fetch(target, finit).then(function (r) {
+    credFetch(target, finit).then(function (r) {
       t.httpStatus = r.status;
+      var realUrl = url;
+      try { var ru = new URL(r.url).searchParams.get('url'); if (ru) realUrl = ru; } catch (e1) {}
+      t.siteKey = siteOf(realUrl);
+      try { siteEat(t.siteKey, r.headers.get('x-og-set-cookie')); } catch (e2) {}
       var ct = (r.headers.get('content-type') || '').toLowerCase();
       if (my !== t.ftok || !t.frame) { clearTimeout(timer); ctl.abort(); return; }
       if (ct.indexOf('text/html') < 0) { // a file, image or video: let the frame open it directly
@@ -2039,7 +1831,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
         t.ctl = null;
         return inlineScripts(decodePage(buf, ct), t, my).then(function (out) {
           if (my !== t.ftok || !t.frame) return;
-          t.frame.srcdoc = withHelper(out);
+          t.frame.srcdoc = withHelper(withState(out, t.siteKey));
         });
       });
     }).catch(function (err) {
@@ -2058,597 +1850,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     });
   }
 
-  /* ---------- API fetcher (bottom bar: Browse | API) ----------
-     Two ways to ask, chosen in the expanded bar (Fetch is the default, like ProxyLink):
-       FETCH  fetch() through the worker's page relay (/?url=...). The answer is read here and described (status, headers, file
-              type found from the Content-Type, the extension or the bytes). HTML comes back already rewritten by the relay.
-       GET    one GET request to the worker's /_og/get, which answers with JSON that already describes the file.
-     The page is then shown here. */
-  var apiOpen = false, apiFrameEl = null, apiBlobs = [], apiFontSeq = 0;
-  var apiOwner = null; // the tab whose page is currently drawn in the API view
-  /* tear the API preview down for good (stops any audio/video playing in it) when its tab is closed or left */
-  function apiDrop(t) {
-    if (t && apiOwner !== t) return;
-    try {
-      var b = document.getElementById('apibody');
-      if (b) {
-        Array.prototype.forEach.call(b.querySelectorAll('iframe,video,audio'), function (n) {
-          try { if (n.pause) n.pause(); } catch (e) {}
-          try { if (n.tagName === 'IFRAME') n.src = 'about:blank'; else { n.removeAttribute('src'); n.load(); } } catch (e) {}
-        });
-        b.textContent = '';
-      }
-    } catch (e) {}
-    apiBlobs.forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} });
-    apiBlobs = []; apiFrameEl = null; apiOwner = null;
-  }
-  var API_KINDS = { html: 'HTML page', json: 'JSON', xml: 'XML', css: 'CSS', js: 'JavaScript', svg: 'SVG image', text: 'Text', image: 'Image', video: 'Video', audio: 'Audio', pdf: 'PDF', font: 'Font', archive: 'Archive', binary: 'Binary file' };
-
-  function isWebUrl(url) {
-    return /^https?:\/\//i.test(url || '') && !srchRoute(url) && !ytRoute(url) && !aiRoute(url) && !setRoute(url);
-  }
-  /* a page the Browse | API switch applies to: a website, or a web search */
-  function apiRoute(url) { return isWebUrl(url) || !!srchRoute(url); }
-  /* in API mode a search is one GET request, sent through /_og/get, to the results page of the chosen engine */
-  var SR_API_URLS = {
-    auto: 'https://www.bing.com/search?setlang=en&cc=us&q=',
-    bing: 'https://www.bing.com/search?setlang=en&cc=us&q=',
-    mojeek: 'https://www.mojeek.com/search?q=',
-    yahoo: 'https://search.yahoo.com/search?ei=UTF-8&p=',
-    ddg: 'https://html.duckduckgo.com/html/?q=',
-    marginalia: 'https://search.marginalia.nu/search?query=',
-    wikipedia: 'https://en.wikipedia.org/w/index.php?search='
-  };
-  function apiTarget(url) {
-    var sr = srchRoute(url);
-    return sr ? (SR_API_URLS[sr.e] || SR_API_URLS.auto) + encodeURIComponent(sr.q) : url;
-  }
-  function apiShownUrl(url) { var sr = srchRoute(url); return sr ? sr.q : url; }
-  function syncMode() {
-    var sw = $('modesw');
-    if (!sw || !T) return;
-    var u = T.hist[T.idx];
-    sw.hidden = !(u && apiRoute(u));
-    var showBar = !sw.hidden && !!T.api && !srchRoute(u);
-    $('apimore').hidden = !showBar;
-    $('apidrawer').classList.toggle('on', showBar && apiOpen);
-    Array.prototype.forEach.call(sw.querySelectorAll('button'), function (b) {
-      var on = (b.getAttribute('data-m') === 'api') === !!T.api;
-      b.classList.toggle('on', on);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-    syncVia();
-  }
-  /* Fetch | GET switch in the expanded bar (Fetch is the default) */
-  function apiVia(t) { return t && t.apiVia === 'get' ? 'get' : 'fetch'; }
-  function syncVia() {
-    var sw = $('apivia');
-    if (!sw || !T) return;
-    var v = apiVia(T);
-    Array.prototype.forEach.call(sw.querySelectorAll('button'), function (b) {
-      var on = b.getAttribute('data-v') === v;
-      b.classList.toggle('on', on);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-    var note = $('apivianote');
-    if (note) note.innerHTML = v === 'fetch'
-      ? '<b>Fetch</b> loads the page with fetch() through the worker, the way Browse mode does. Of your request headers only Accept, Accept-Language, Range and Content-Type are passed on. Use GET to send any header.'
-      : '<b>GET</b> sends one GET request to the worker\'s API fetcher (/_og/get), which answers with JSON. Any request header can be sent.';
-  }
-  $('apivia').addEventListener('click', function (e) {
-    var b = e.target && e.target.closest ? e.target.closest('button') : null;
-    if (!b) return;
-    var v = b.getAttribute('data-v') === 'get' ? 'get' : 'fetch', u = T.hist[T.idx];
-    if (!u || !T.api || apiVia(T) === v) return;
-    T.apiVia = v;
-    syncVia();
-    show(u);
-  });
-  $('modesw').addEventListener('click', function (e) {
-    var b = e.target && e.target.closest ? e.target.closest('button') : null;
-    if (!b) return;
-    var on = b.getAttribute('data-m') === 'api', u = T.hist[T.idx];
-    if (!u || !apiRoute(u) || !!T.api === on) return;
-    T.api = on;
-    show(u);
-  });
-
-  $('apimore').addEventListener('click', function () {
-    apiOpen = !apiOpen;
-    $('apimore').setAttribute('aria-expanded', apiOpen ? 'true' : 'false');
-    syncMode();
-  });
-
-  function apiBytesLabel(n) {
-    if (n == null) return 'unknown';
-    if (n < 1024) return n + ' B';
-    if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
-    return (n / 1048576).toFixed(2) + ' MB';
-  }
-  function apiStatusText(j) {
-    if (!j) return 'API';
-    if (j.error) return 'API \u00b7 error';
-    return 'API \u00b7 ' + (j.via === 'fetch' ? 'FETCH' : 'GET') + ' \u00b7 ' + j.status + ' \u00b7 ' + (API_KINDS[j.kind] || j.kind) + (j.ext ? ' (.' + j.ext + ')' : '');
-  }
-  function apiHeaderObj() {
-    var o = null;
-    String($('apihdrs').value || '').split(/\r?\n/).forEach(function (ln) {
-      var i = ln.indexOf(':');
-      if (i < 1) return;
-      var k = ln.slice(0, i).trim(), v = ln.slice(i + 1).trim();
-      if (k) (o = o || {})[k] = v;
-    });
-    return o;
-  }
-  function apiTitle(j, url) {
-    if (j.kind === 'html' && j.body) {
-      var m = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(j.body);
-      if (m) {
-        var ta = document.createElement('textarea');
-        ta.innerHTML = m[1];
-        var tt = ta.value.replace(/\s+/g, ' ').trim();
-        if (tt) return tt.slice(0, 120);
-      }
-    }
-    if (j.filename) return j.filename.slice(0, 120);
-    try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return url; }
-  }
-
-  function apiShow(t, url) {
-    stopFrame(t); setBanner(null);
-    viewer.classList.remove('yt'); viewer.classList.add('api');
-    yt.src = 'about:blank'; vpClose(); ytKey = '';
-    t.apiRes = null; t.title = '';
-    progress(true);
-    setStatus(apiShownUrl(url), 'API · loading…', '');
-    if (srchRoute(url)) { t.title = 'Search: ' + srchRoute(url).q; addr.value = srchRoute(url).q; }
-    apiPaint(t);
-    renderTabs(); saveTabs();
-    apiLoad(t, url);
-  }
-  function apiLoad(t, url) {
-    if (t.ctl) { try { t.ctl.abort(); } catch (e) {} }
-    var my = t.ftok = (t.ftok || 0) + 1;
-    var ctl = t.ctl = new AbortController(), timedOut = false;
-    var timer = setTimeout(function () { timedOut = true; ctl.abort(); }, 45000);
-    var hd = apiHeaderObj();
-    var path = '/_og/get?url=' + encodeURIComponent(apiTarget(url)) + (t.apiLite ? '&lite=1' : '') + (hd ? '&h=' + encodeURIComponent(JSON.stringify(hd)) : '') + kq();
-    var post = t.post || null; t.post = null; // a submitted form goes to the API fetcher as a POST; the answer is the same JSON
-    var finit = { signal: ctl.signal };
-    if (post) { finit.method = 'POST'; finit.body = post.body; }
-    var via = apiVia(t);
-    var req = via === 'fetch' ? apiFetchRequest(t, url, hd, finit) : wfetch(path, finit).then(function (r) {
-      return r.json().then(function (j) {
-        if (!j || j.error) throw new Error((j && j.error) || ('Error ' + r.status));
-        j.via = 'get';
-        if (j.kind === 'html' && j.truncated && !post) { // cut short by the worker: fetch the whole page the Fetch way instead
-          var f2 = { signal: ctl.signal };
-          return apiFetchRequest(t, url, hd, f2).then(function (j2) { j2.fellBack = true; return j2; }, function () { return j; });
-        }
-        return j;
-      }, function () { throw new Error('Unexpected answer from the worker (HTTP ' + r.status + ')'); });
-    });
-    req.then(function (j) {
-      clearTimeout(timer);
-      if (my !== t.ftok) return;
-      t.ctl = null;
-      var done = function (html) {
-        if (my !== t.ftok) return;
-        j.renderedFinal = html || j.rendered || '';
-        apiFinish(t, url, j);
-      };
-      if (j.kind === 'html' && j.rendered) (j.via === 'fetch' ? inlineScripts(j.rendered, t, my) : inlineApiAssets(j.rendered, t, my, j.finalUrl || apiTarget(url))).then(done, function () { done(''); });
-      else done('');
-    }).catch(function (err) {
-      clearTimeout(timer);
-      if (my !== t.ftok) return;
-      t.ctl = null;
-      if (err && err.name === 'AbortError' && !timedOut) return;
-      t.apiRes = { error: timedOut ? 'The page took too long to answer.' : ((err && err.message) || 'The request failed.') };
-      progress(false);
-      if (t === T) { setStatus(apiShownUrl(url), apiStatusText(t.apiRes), ''); apiPaint(t); }
-    });
-  }
-
-  /* ---------- FETCH: the page is requested with fetch() through the worker's page relay (/?url=...), exactly like Browse mode and
-     like ProxyLink. The browser reads the answer and builds the same description the GET fetcher gives (status, headers, file
-     type, body), so the tabs, preview and downloads work the same for both. HTML is already rewritten by the relay, so
-     its scripts, styles and images keep going through the worker. ---------- */
-  var AF_EXT = {}, AF_MIME = {
-    jpg: 'image/jpeg', jpeg: 'image/jpeg', jpe: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif', bmp: 'image/bmp', ico: 'image/x-icon', tif: 'image/tiff', tiff: 'image/tiff', heic: 'image/heic',
-    webm: 'video/webm', mov: 'video/quicktime', mkv: 'video/x-matroska', avi: 'video/x-msvideo', ogv: 'video/ogg', '3gp': 'video/3gpp',
-    wav: 'audio/wav', ogg: 'audio/ogg', oga: 'audio/ogg', m4a: 'audio/mp4', aac: 'audio/aac', flac: 'audio/flac', opus: 'audio/ogg', weba: 'audio/webm', mid: 'audio/midi', midi: 'audio/midi',
-    woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf', eot: 'application/vnd.ms-fontobject',
-    csv: 'text/csv', tsv: 'text/tab-separated-values', yml: 'text/yaml', yaml: 'text/yaml', vtt: 'text/vtt',
-    xhtml: 'application/xhtml+xml', rss: 'application/rss+xml', atom: 'application/atom+xml', webmanifest: 'application/manifest+json', geojson: 'application/geo+json', jsonld: 'application/ld+json',
-    gz: 'application/gzip', tgz: 'application/gzip', tar: 'application/x-tar', rar: 'application/vnd.rar', '7z': 'application/x-7z-compressed', wasm: 'application/wasm'
-  };
-  (function () {
-    [['html', 'text/html', 'html htm xhtml shtml'], ['json', 'application/json', 'json map webmanifest geojson jsonld har'],
-     ['xml', 'application/xml', 'xml rss atom xsl xslt kml plist'], ['css', 'text/css', 'css'], ['js', 'text/javascript', 'js mjs cjs jsx ts tsx'], ['svg', 'image/svg+xml', 'svg'],
-     ['text', 'text/plain', 'txt md markdown csv tsv log ini conf cfg yml yaml toml ndjson jsonl py java c h cpp hpp cs go rs rb php sh bat ps1 sql lua swift kt r vue svelte env diff patch srt vtt'],
-     ['image', 'image/png', 'png jpg jpeg jpe gif webp avif bmp ico cur tif tiff heic'], ['video', 'video/mp4', 'mp4 m4v webm mov mkv avi ogv 3gp'],
-     ['audio', 'audio/mpeg', 'mp3 wav ogg oga m4a aac flac opus weba mid midi'], ['pdf', 'application/pdf', 'pdf'], ['font', 'font/woff2', 'woff woff2 ttf otf eot'],
-     ['archive', 'application/zip', 'zip gz tgz tar rar 7z bz2 xz jar apk'], ['binary', 'application/octet-stream', 'exe dll bin wasm dmg iso doc docx xls xlsx ppt pptx odt ods odp']
-    ].forEach(function (r) { r[2].split(' ').forEach(function (e) { AF_EXT[e] = [r[0], AF_MIME[e] || r[1]]; }); });
-  })();
-  var AF_GENERIC = { '': 1, 'application/octet-stream': 1, 'binary/octet-stream': 1, 'application/x-unknown': 1, 'application/unknown': 1, 'application/download': 1, 'application/x-download': 1, 'application/force-download': 1, 'text/plain': 1 };
-  var AF_TEXT = { html: 1, json: 1, xml: 1, css: 1, js: 1, svg: 1, text: 1 };
-  var AF_TEXT_CAP = 3 * 1048576, AF_BIN_CAP = 8 * 1048576, AF_HTML_CAP = 64 * 1048576, AF_SRC_SHOW = 3 * 1048576;
-
-  function afExt(path) {
-    var seg = String(path || '').split('/').pop() || '', i = seg.lastIndexOf('.');
-    if (i < 0 || i === seg.length - 1) return '';
-    var e = seg.slice(i + 1).toLowerCase();
-    return /^[a-z0-9]{1,8}$/.test(e) ? e : '';
-  }
-  function afKindFromMime(m) {
-    if (!m) return null;
-    if (m === 'text/html' || m === 'application/xhtml+xml') return 'html';
-    if (m === 'image/svg+xml') return 'svg';
-    if (m === 'application/json' || m === 'text/json' || /\+json$/.test(m)) return 'json';
-    if (m === 'text/css') return 'css';
-    if (m.indexOf('javascript') >= 0 || m.indexOf('ecmascript') >= 0) return 'js';
-    if (m === 'text/xml' || m === 'application/xml' || /\+xml$/.test(m)) return 'xml';
-    if (m.indexOf('image/') === 0) return 'image';
-    if (m.indexOf('video/') === 0) return 'video';
-    if (m.indexOf('audio/') === 0) return 'audio';
-    if (m === 'application/pdf') return 'pdf';
-    if (m.indexOf('font/') === 0 || m.indexOf('application/font') === 0 || m.indexOf('application/x-font') === 0 || m === 'application/vnd.ms-fontobject') return 'font';
-    if (/^application\/(zip|gzip|x-gzip|x-tar|x-7z-compressed|vnd\.rar|x-rar-compressed|x-bzip2|x-xz|java-archive)$/.test(m)) return 'archive';
-    if (m.indexOf('text/') === 0) return 'text';
-    if (/^application\/(x-ndjson|yaml|x-yaml|toml|x-www-form-urlencoded|x-sh|sql|graphql)$/.test(m)) return 'text';
-    return null;
-  }
-  /* the first bytes of a file say what it is, whatever the server claimed */
-  function afSniff(b) {
-    var n = b.length;
-    if (!n) return null;
-    var at = function (i, str) {
-      if (i + str.length > n) return false;
-      for (var k = 0; k < str.length; k++) if (b[i + k] !== str.charCodeAt(k)) return false;
-      return true;
-    };
-    if (at(0, '\x89PNG')) return ['image', 'image/png'];
-    if (n >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return ['image', 'image/jpeg'];
-    if (at(0, 'GIF8')) return ['image', 'image/gif'];
-    if (at(0, 'RIFF') && at(8, 'WEBP')) return ['image', 'image/webp'];
-    if (at(0, 'RIFF') && at(8, 'WAVE')) return ['audio', 'audio/wav'];
-    if (at(0, 'RIFF') && at(8, 'AVI ')) return ['video', 'video/x-msvideo'];
-    if (at(0, '%PDF')) return ['pdf', 'application/pdf'];
-    if (at(4, 'ftyp')) {
-      if (at(8, 'avif')) return ['image', 'image/avif'];
-      if (at(8, 'heic') || at(8, 'heix') || at(8, 'mif1')) return ['image', 'image/heic'];
-      if (at(8, 'M4A ')) return ['audio', 'audio/mp4'];
-      return ['video', 'video/mp4'];
-    }
-    if (at(0, '\x1a\x45\xdf\xa3')) return ['video', 'video/webm'];
-    if (at(0, 'OggS')) return ['audio', 'audio/ogg'];
-    if (at(0, 'ID3') || (n >= 2 && b[0] === 0xff && (b[1] === 0xfb || b[1] === 0xf3 || b[1] === 0xf2))) return ['audio', 'audio/mpeg'];
-    if (at(0, 'fLaC')) return ['audio', 'audio/flac'];
-    if (at(0, 'wOFF')) return ['font', 'font/woff'];
-    if (at(0, 'wOF2')) return ['font', 'font/woff2'];
-    if (at(0, 'OTTO')) return ['font', 'font/otf'];
-    if (n >= 4 && b[0] === 0 && b[1] === 1 && b[2] === 0 && b[3] === 0) return ['font', 'font/ttf'];
-    if (at(0, 'PK\x03\x04')) return ['archive', 'application/zip'];
-    if (n >= 2 && b[0] === 0x1f && b[1] === 0x8b) return ['archive', 'application/gzip'];
-    if (at(0, 'Rar!')) return ['archive', 'application/vnd.rar'];
-    if (at(0, '\0asm')) return ['binary', 'application/wasm'];
-    return null;
-  }
-  function afHasNul(b) {
-    var n = Math.min(b.length, 2048);
-    for (var i = 0; i < n; i++) if (b[i] === 0) return true;
-    return false;
-  }
-  function afTextKind(text) {
-    var head = text.slice(0, 1024).replace(/^\s+/, '').toLowerCase();
-    if (head.indexOf('<!doctype html') === 0 || head.indexOf('<html') === 0) return 'html';
-    if (head.indexOf('<svg') === 0 || (head.indexOf('<?xml') === 0 && head.indexOf('<svg') >= 0)) return 'svg';
-    if (head.indexOf('<?xml') === 0) return 'xml';
-    if ((head.charAt(0) === '{' || head.charAt(0) === '[') && text.length < 1500000) { try { JSON.parse(text); return 'json'; } catch (e) {} }
-    return null;
-  }
-  function afB64(bytes) {
-    var out = '';
-    for (var i = 0; i < bytes.length; i += 0x8000) out += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-    return btoa(out);
-  }
-  function afDispoName(d) {
-    if (!d) return '';
-    var m = /filename\*\s*=\s*(?:UTF-8|utf-8)''([^;]+)/.exec(d);
-    if (m) { try { return decodeURIComponent(m[1].trim()); } catch (e) { return m[1].trim(); } }
-    m = /filename\s*=\s*"?([^";]+)"?/.exec(d);
-    return m ? m[1].trim() : '';
-  }
-  /* the real address behind a worker address: WORKER/?url=<real> -> <real> */
-  function afRealUrl(u, fallback) {
-    try {
-      if (String(u).indexOf(WORKER + '/?url=') === 0 || String(u).indexOf(WORKER + '/fetch?url=') === 0) { var r = new URL(u).searchParams.get('url'); if (r && /^https?:/i.test(r)) return r; }
-    } catch (e) {}
-    return fallback;
-  }
-
-  function apiFetchRequest(t, url, hd, finit) {
-    var target = apiTarget(url), t0 = Date.now();
-    var path = '/fetch?url=' + encodeURIComponent(target) + (t.apiLite ? '&lite=1' : '') + (settings.cookies === false ? '&nc=1' : '') + kq();
-    var h = { 'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8' };
-    if (hd) Object.keys(hd).forEach(function (k) {
-      if (/^[A-Za-z0-9!#$%&'*+.^_`|~-]{1,100}$/.test(k) && !/[\r\n]/.test(hd[k])) h[k.toLowerCase()] = hd[k];
-    });
-    finit.headers = h;
-    return wfetch(path, finit).then(function (r) {
-      var ct = r.headers.get('content-type') || '';
-      return r.arrayBuffer().then(function (buf) { return apiFetchResult(r, buf, ct, target, Date.now() - t0); });
-    });
-  }
-
-  function apiFetchResult(r, buf, ct, target, ms) {
-    var mime = ct.split(';')[0].trim().toLowerCase();
-    var finalUrl = afRealUrl(r.url, target), cur;
-    try { cur = new URL(finalUrl); } catch (e) { cur = new URL(target); }
-    var dname = afDispoName(r.headers.get('content-disposition'));
-    var ext = afExt(cur.pathname), extSource = ext ? 'url' : '', kind = null, rmime = '', how = '';
-    if (!AF_EXT[ext] && dname) {
-      var de = afExt(dname);
-      if (de && (AF_EXT[de] || !ext)) { ext = de; extSource = 'disposition'; }
-    }
-    var extInfo = AF_EXT[ext] || null;
-    // the Content-Type header wins unless it is generic (octet-stream, text/plain, missing)
-    if (!AF_GENERIC[mime]) { kind = afKindFromMime(mime); if (kind) { rmime = mime; how = 'type'; } }
-    if (!kind && extInfo) { kind = extInfo[0]; rmime = extInfo[1]; how = 'extension'; }
-
-    var totalSize = buf.byteLength, truncated = false, tooBig = false;
-    var textual = !!(kind && AF_TEXT[kind]);
-    if (kind && !textual && totalSize > AF_BIN_CAP) tooBig = true;
-    var capFor = kind === 'html' ? AF_HTML_CAP : AF_TEXT_CAP;
-    if (textual && totalSize > capFor) { buf = buf.slice(0, capFor); truncated = true; }
-    var bytes = tooBig ? new Uint8Array(0) : new Uint8Array(buf);
-
-    // the bytes themselves
-    if (!kind && !tooBig) {
-      var sn = afSniff(bytes);
-      if (sn) { kind = sn[0]; rmime = sn[1]; how = 'content'; }
-    }
-    var text = '', charset = '';
-    var csm = /charset\s*=\s*["']?([\w.:-]+)/i.exec(ct);
-    if (!tooBig && (!kind || AF_TEXT[kind])) {
-      if (afHasNul(bytes) && (!kind || kind === 'text')) { kind = 'binary'; rmime = mime || 'application/octet-stream'; how = how || 'content'; }
-      if (!kind || AF_TEXT[kind]) {
-        text = decodePage(buf, ct);
-        charset = csm ? csm[1].toLowerCase() : 'utf-8';
-        if (!kind) {
-          var k = afTextKind(text);
-          if (k) { kind = k; rmime = k === 'html' ? 'text/html' : k === 'json' ? 'application/json' : k === 'svg' ? 'image/svg+xml' : 'application/xml'; how = 'content'; }
-          else { kind = 'text'; rmime = mime || 'text/plain'; how = how || 'content'; }
-        }
-      }
-    }
-    if (!kind) { kind = 'binary'; rmime = mime || 'application/octet-stream'; how = how || 'content'; }
-
-    // a clean name for the file
-    var seg = '';
-    try { seg = decodeURIComponent(cur.pathname.split('/').pop() || ''); } catch (e) { seg = cur.pathname.split('/').pop() || ''; }
-    var fname = dname || seg || cur.hostname;
-    if (!afExt(fname) && ext) fname += '.' + ext;
-    if (!afExt(fname) && !ext) {
-      var guess = Object.keys(AF_EXT).filter(function (e) { return AF_EXT[e][1] === rmime && AF_EXT[e][0] === kind; })[0];
-      if (guess) fname += '.' + guess;
-    }
-    if (!ext && (dname || seg)) { ext = afExt(fname); if (ext && dname) extSource = 'disposition'; }
-
-    var binaryBody = !tooBig && !AF_TEXT[kind];
-    var outHeaders = {};
-    r.headers.forEach(function (v, key) { outHeaders[key] = outHeaders[key] ? outHeaders[key] + ', ' + v : v; });
-    return {
-      via: 'fetch',
-      ok: r.status >= 200 && r.status < 300,
-      url: target,
-      finalUrl: finalUrl,
-      redirects: (r.redirected || finalUrl !== target) ? [{ status: 0, url: target }] : [],
-      status: r.status,
-      statusText: r.statusText || '',
-      ms: ms,
-      contentType: ct,
-      mime: rmime,
-      kind: kind,
-      ext: ext,
-      extSource: extSource,
-      detectedBy: how,
-      filename: fname,
-      charset: charset,
-      size: tooBig ? totalSize : bytes.length,
-      totalSize: totalSize,
-      truncated: truncated,
-      tooBig: tooBig,
-      encoding: tooBig ? 'none' : binaryBody ? 'base64' : 'text',
-      body: tooBig ? '' : binaryBody ? afB64(bytes) : text,
-      // the relay has already rewritten an HTML answer, so it is the page that gets drawn
-      rendered: (kind === 'html' && how === 'type' && !truncated) ? text : '',
-      headers: outHeaders
-    };
-  }
-
-  function apiViews(j) {
-    if (j.kind === 'html') return [['preview', 'Preview'], ['raw', 'Source'], ['headers', 'Headers']];
-    if (j.kind === 'json') return [['pretty', 'Pretty'], ['raw', 'Raw'], ['headers', 'Headers']];
-    if (j.kind === 'svg') return [['preview', 'Preview'], ['raw', 'Source'], ['headers', 'Headers']];
-    if (j.kind === 'xml' || j.kind === 'css' || j.kind === 'js' || j.kind === 'text') return [['raw', 'Text'], ['headers', 'Headers']];
-    if (j.kind === 'binary' || j.kind === 'archive') return [['hex', 'Hex'], ['headers', 'Headers']];
-    return [['preview', 'Preview'], ['hex', 'Hex'], ['headers', 'Headers']];
-  }
-  function apiFinish(t, url, j) {
-    progress(false);
-    j.view = apiViews(j)[0][0];
-    t.apiRes = j;
-    var fu = url, srq = srchRoute(url);
-    if (!srq && j.redirects && j.redirects.length && /^https?:\/\//i.test(j.finalUrl || '')) { fu = j.finalUrl; t.hist[t.idx] = fu; }
-    t.title = srq ? 'Search: ' + srq.q : apiTitle(j, fu);
-    histRecord(t, fu, t.title);
-    if (t === T) {
-      updateNav();
-      if (document.activeElement !== addr) addr.value = apiShownUrl(fu);
-      setStatus(apiShownUrl(fu), apiStatusText(j), t.title);
-      apiPaint(t);
-    }
-    renderTabs(); saveTabs();
-  }
-
-  function apiBytesOf(j) {
-    if (j.encoding === 'base64') {
-      var s = atob(j.body || ''), u = new Uint8Array(s.length);
-      for (var i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);
-      return u;
-    }
-    return new TextEncoder().encode(j.body || '');
-  }
-  function apiBlob(j) {
-    return new Blob([j.encoding === 'base64' ? apiBytesOf(j) : (j.body || '')], { type: j.mime || 'application/octet-stream' });
-  }
-  function apiObjUrl(j) { var u = URL.createObjectURL(apiBlob(j)); apiBlobs.push(u); return u; }
-  function apiHex(j) {
-    var b = apiBytesOf(j), n = Math.min(b.length, 4096), out = [];
-    for (var i = 0; i < n; i += 16) {
-      var hx = [], as = '';
-      for (var k = 0; k < 16; k++) {
-        if (i + k < n) { var c = b[i + k]; hx.push((c < 16 ? '0' : '') + c.toString(16)); as += c >= 32 && c < 127 ? String.fromCharCode(c) : '.'; }
-        else hx.push('  ');
-      }
-      out.push(('00000000' + i.toString(16)).slice(-8) + '  ' + hx.slice(0, 8).join(' ') + '  ' + hx.slice(8).join(' ') + '  |' + as + '|');
-    }
-    return out.join('\n') + (b.length > n ? '\n… ' + (b.length - n) + ' more bytes' : '');
-  }
-  function apiJsonHl(str) {
-    var esc = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    if (esc.length > 600000) return esc;
-    return esc.replace(/("(\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (m) {
-      var c = 'tk-n';
-      if (m.charAt(0) === '"') c = /:$/.test(m) ? 'tk-k' : 'tk-s';
-      else if (m === 'true' || m === 'false' || m === 'null') c = 'tk-b';
-      return '<span class="' + c + '">' + m + '</span>';
-    });
-  }
-  function apiChip(label, text, cls) {
-    var c = el('span', 'apichip' + (cls ? ' ' + cls : ''));
-    c.appendChild(el('b', null, label));
-    c.appendChild(document.createTextNode(' ' + text));
-    return c;
-  }
-  function apiMsg(body, text) { body.appendChild(el('div', 'apimsg', text)); }
-
-  function apiPreview(t, j, body) {
-    var url = j.finalUrl || t.hist[t.idx] || '', src;
-    if (j.kind === 'html') {
-      var h = j.renderedFinal || j.rendered;
-      if (!h) { apiMsg(body, 'A preview could not be built for this page. Open the Source tab to read it.'); return; }
-      var f = el('iframe', 'apiframe');
-      f.title = 'Fetched page';
-      f.setAttribute('sandbox', FRAME_SANDBOX);
-      f.setAttribute('allow', FRAME_ALLOW);
-      f.srcdoc = h;
-      body.appendChild(f);
-      apiFrameEl = f;
-      return;
-    }
-    if (j.kind === 'font') {
-      var st = el('div', 'apistage'), sp = el('div', 'apispec', 'Aa Bb Cc 0123456789');
-      sp.appendChild(el('small', null, 'The quick brown fox jumps over the lazy dog'));
-      st.appendChild(sp); body.appendChild(st);
-      try {
-        var ff = new FontFace('ogprev' + (++apiFontSeq), apiBytesOf(j));
-        ff.load().then(function (loaded) { document.fonts.add(loaded); sp.style.fontFamily = '"' + loaded.family + '"'; },
-          function () { sp.textContent = 'This font could not be previewed.'; });
-      } catch (e) { sp.textContent = 'This font could not be previewed.'; }
-      return;
-    }
-    if (j.tooBig) {
-      if (j.kind === 'image' || j.kind === 'video' || j.kind === 'audio' || j.kind === 'pdf') src = proxied(url);
-      else { apiMsg(body, 'This file is too large to show here (' + apiBytesLabel(j.size) + '). Use Download or Open.'); return; }
-    } else src = apiObjUrl(j);
-    if (j.kind === 'pdf') {
-      var pf = el('iframe', 'apiframe'); pf.title = 'PDF'; pf.src = src; body.appendChild(pf); return;
-    }
-    var stage = el('div', 'apistage'), m;
-    if (j.kind === 'video') { m = el('video'); m.controls = true; m.setAttribute('playsinline', ''); m.src = src; }
-    else if (j.kind === 'audio') { m = el('audio'); m.controls = true; m.src = src; }
-    else { m = el('img'); m.alt = j.filename || 'Image'; m.src = src; }
-    stage.appendChild(m); body.appendChild(stage);
-  }
-  function apiHeadersTable(j) {
-    var tb = el('table', 'apihdrt'), keys = Object.keys(j.headers || {}).sort();
-    if (!keys.length) return el('div', 'apimsg', 'No response headers.');
-    keys.forEach(function (k) {
-      var tr = el('tr'); tr.appendChild(el('td', null, k)); tr.appendChild(el('td', null, j.headers[k])); tb.appendChild(tr);
-    });
-    return tb;
-  }
-
-  function apiPaint(t) {
-    var j = t.apiRes, url = t.hist[t.idx] || '';
-    apiBlobs.forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} });
-    apiBlobs = []; apiFrameEl = null; apiOwner = t;
-    $('apiscripts').textContent = 'Scripts: ' + (t.apiLite ? 'off' : 'on');
-    $('apiscripts').setAttribute('aria-pressed', t.apiLite ? 'false' : 'true');
-    var meta = $('apimeta'), tabsEl = $('apitabs'), acts = $('apiacts'), body = $('apibody');
-    $('apibody').parentNode.classList.toggle('flush', !!(j && !j.error && j.view === 'preview' && (j.kind === 'html' || j.kind === 'pdf')));
-    meta.textContent = ''; tabsEl.textContent = ''; acts.textContent = ''; body.textContent = '';
-    if (!j) { apiMsg(body, 'Fetching…'); return; }
-    if (j.error) { apiMsg(body, j.error); return; }
-
-    meta.appendChild(apiChip('Method', j.via === 'fetch' ? 'FETCH' : 'GET'));
-    meta.appendChild(apiChip('HTTP', j.status + (j.statusText ? ' ' + j.statusText : ''), j.ok ? 'ok' : 'err'));
-    meta.appendChild(apiChip('Type', (API_KINDS[j.kind] || j.kind) + (j.mime ? ' · ' + j.mime : '')));
-    if (j.ext) meta.appendChild(apiChip('Extension', '.' + j.ext + (j.extSource === 'url' ? ' (from the URL)' : j.extSource === 'disposition' ? ' (from the file name)' : '')));
-    meta.appendChild(apiChip('Detected by', j.detectedBy === 'extension' ? 'file extension' : j.detectedBy === 'content' ? 'file contents' : 'Content-Type header'));
-    meta.appendChild(apiChip('Size', apiBytesLabel(j.size)));
-    meta.appendChild(apiChip('Time', j.ms + ' ms'));
-    if (j.redirects && j.redirects.length) { var rc = apiChip('Redirects', String(j.redirects.length)); rc.title = 'Final address: ' + j.finalUrl; meta.appendChild(rc); }
-    if (j.truncated) meta.appendChild(apiChip('Shortened', 'showing the first ' + apiBytesLabel(j.size), 'err'));
-
-    apiViews(j).forEach(function (v) {
-      var b = el('button', 'apitab' + (j.view === v[0] ? ' on' : ''), v[1]);
-      b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', j.view === v[0] ? 'true' : 'false');
-      b.addEventListener('click', function () { j.view = v[0]; apiPaint(t); });
-      tabsEl.appendChild(b);
-    });
-    var isText = j.encoding === 'text';
-    if (isText) { var cb = el('button', 'btn ghost sm', 'Copy'); cb.type = 'button'; cb.addEventListener('click', function () { apiCopy(j); }); acts.appendChild(cb); }
-    var db = el('button', 'btn ghost sm', 'Download'); db.type = 'button'; db.addEventListener('click', function () { apiDownload(j); }); acts.appendChild(db);
-    var ob = el('button', 'btn ghost sm', 'Open via worker'); ob.type = 'button';
-    ob.addEventListener('click', function () { window.open(proxied(j.finalUrl || url), '_blank', 'noopener'); });
-    acts.appendChild(ob);
-
-    var v = j.view;
-    if (v === 'headers') body.appendChild(apiHeadersTable(j));
-    else if (v === 'preview') apiPreview(t, j, body);
-    else if (j.tooBig) apiMsg(body, 'This file is too large to show here (' + apiBytesLabel(j.size) + '). Use Download or Open.');
-    else if (v === 'hex') body.appendChild(el('pre', 'apipre', apiHex(j)));
-    else if (v === 'pretty') {
-      var pre = el('pre', 'apipre'), done = false;
-      try { pre.innerHTML = apiJsonHl(JSON.stringify(JSON.parse(j.body), null, 2)); done = true; } catch (e) {}
-      if (!done) pre.textContent = j.body;
-      body.appendChild(pre);
-    } else {
-      var sb = j.body || '', big = sb.length > AF_SRC_SHOW;
-      body.appendChild(el('pre', 'apipre', big ? sb.slice(0, AF_SRC_SHOW) + '\n\n… ' + apiBytesLabel(sb.length - AF_SRC_SHOW) + ' more not shown here. Use Copy or Download for the whole file.' : sb));
-    }
-  }
-  function apiCopy(j) {
-    var text = j.body || '';
-    var ok = function () { toast('Copied'); }, bad = function () { toast('Could not copy'); };
-    try { navigator.clipboard.writeText(text).then(ok, bad); } catch (e) { bad(); }
-  }
-  function apiDownload(j) {
-    if (j.tooBig) { window.open(proxied(j.finalUrl || ''), '_blank', 'noopener'); return; }
-    var u = URL.createObjectURL(apiBlob(j)), a = document.createElement('a');
-    a.href = u; a.download = j.filename || 'download';
-    try { addDownload(j.filename || 'download', j.finalUrl ? proxied(j.finalUrl) : '', hostOf(j.finalUrl)); } catch (e0) {}
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
-  }
-  $('apisend').addEventListener('click', function () { var u = T.hist[T.idx]; if (T.api && u) show(u); });
-  $('apiscripts').addEventListener('click', function () { var u = T.hist[T.idx]; if (!T.api || !u) return; T.apiLite = !T.apiLite; show(u); });
-
   function go(raw, push) {
     var url = normalize(raw);
     if (!url) { addr.focus(); return; }
@@ -2663,8 +1864,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   }
 
   /* A form the page posted (button click, form.submit()): the fields come over as [name, value] pairs and are sent the way
-     the form said (urlencoded, multipart or text/plain). It is opened like a link: Browse mode sends it through the worker,
-     API mode sends it to the API fetcher. */
+     the form said (urlencoded, multipart or text/plain). It is opened like a link and sent through the worker. */
   function postPayload(d) {
     var list = Array.isArray(d.fields) ? d.fields.slice(0, 2000) : [], enc = String(d.enctype || '').toLowerCase(), i, k, v, pairs = [];
     if (enc.indexOf('multipart/') === 0) {
@@ -2704,16 +1904,14 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   window.addEventListener('message', function (e) {
     var d = e.data;
     if (!d || typeof d !== 'object') return;
-    if (apiFrameEl && e.source === apiFrameEl.contentWindow) { // a link clicked inside the API fetcher's preview
-      if (d.offgrid === 'nav' && T.api && typeof d.url === 'string' && /^https?:\/\//i.test(d.url)) go(d.url);
-      if (d.offgrid === 'post' && T.api && typeof d.url === 'string') goPost(d);
-      return;
-    }
     var t = tabOfWindow(e.source);
     if (!t) return;
-    if (d.offgrid === 'locked') { access.authed = false; openUnlock(); return; }
     if (d.offgrid === 'nav') { if (t === T && t.frameActive && typeof d.url === 'string' && /^https?:\/\//i.test(d.url)) go(d.url); return; }
-    if (d.offgrid === 'post') { if (t === T && t.frameActive && typeof d.url === 'string') goPost(d); return; }
+    if (d.offgrid === 'store') {
+      if (settings.cookies !== false && t.siteKey && d.s === t.siteKey && d.c && typeof d.c === 'object' && d.l && typeof d.l === 'object') siteSet(t.siteKey, d.c, d.l);
+      return;
+    }
+        if (d.offgrid === 'post') { if (t === T && t.frameActive && typeof d.url === 'string') goPost(d); return; }
     if (d.offgrid !== 1 || typeof d.url !== 'string' || !t.frameActive) return;
     t.lastAlive = Date.now(); t.firstSeen = true;
     if (typeof d.icon === 'string' && d.icon.indexOf(WORKER + '/?url=') === 0 && t.icon !== d.icon) { t.icon = d.icon; renderTabs(); }
@@ -3244,8 +2442,8 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     vpStop();
     if (!y) return;
     vpEl.classList.add('fb');
-    yt.src = WORKER + '/_og/player?v=' + encodeURIComponent(y.id) + (y.start ? '&start=' + y.start : '') + (y.list ? '&list=' + encodeURIComponent(y.list) : '') + kq();
-    if (why !== null) toast('Using the standard player' + (why ? ' (' + String(why).slice(0, 220) + ')' : ''));
+    yt.src = WORKER + '/_og/player?v=' + encodeURIComponent(y.id) + (y.start ? '&start=' + y.start : '') + (y.list ? '&list=' + encodeURIComponent(y.list) : '');
+    if (why !== null) toast('Switching to the standard player');
   }
   /* the current source keeps refusing (HTTP 403 / 410): get the stream list from the OTHER source (worker <-> this browser
      asking Invidious directly) and carry on from the same second, instead of dropping to the standard player */
@@ -3431,7 +2629,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   /* plain progressive file (360p with sound): the browser itself asks for byte ranges through the worker */
   function vpProg(m, at, play, my) {
     VP.mode = 'prog'; VP.label = (m.h || 360) + 'p';
-    vpVid.src = m.abs ? m.src : WORKER + m.src + kq();
+    vpVid.src = m.abs ? m.src : WORKER + m.src;
     vpVid.addEventListener('loadedmetadata', function once() {
       vpVid.removeEventListener('loadedmetadata', once);
       if (my === VP.tok && at > 0) { try { vpVid.currentTime = at; } catch (e) {} }
@@ -3444,7 +2642,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     var ctl = new AbortController();
     VP.ctls.push(ctl);
     function drop() { var i = VP.ctls.indexOf(ctl); if (i >= 0) VP.ctls.splice(i, 1); }
-    var u = fmt.abs ? fmt.src + (fmt.src.indexOf('?') < 0 ? '?' : '&') + 'range=' + a + '-' + b : WORKER + fmt.src + '&r=' + a + '-' + b + kq();
+    var u = fmt.abs ? fmt.src + (fmt.src.indexOf('?') < 0 ? '?' : '&') + 'range=' + a + '-' + b : WORKER + fmt.src + '&r=' + a + '-' + b;
     return fetch(u, { signal: ctl.signal }).then(function (r) {
       if (!r.ok && r.status !== 206) {
         return r.text().then(function (t) { return t; }, function () { return ''; }).then(function (t) {
@@ -3604,7 +2802,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
         return vpWait(500);
       }
       t.errs++;
-      toast('Chunk failed (' + t.errs + '): ' + ((e && e.message) || 'network error') + (VP.info && VP.info.abs ? ' [browser]' : ' [worker]'));
+      if (t.errs === 2) toast('The video is loading slowly…');
       if (e && (e.status === 403 || e.status === 410)) {
         if (Date.now() - VP.lastRefresh > 6000) return vpRefresh().catch(function () {});
         if (t.errs >= 4 && (VP.sw || 0) < 2 && !VP.switching) return vpSwitchSource().catch(function () {});
@@ -3648,101 +2846,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     try { var x = new URL(u); return (x.hostname + x.pathname + x.search).slice(0, 90); } catch (e) { return u; }
   }
 
-  /* ----- API mode search: the engine's own results page is fetched with one GET through /_og/get (scripts off, so the
-     results are in the HTML), and the results are read out of it here. All engines are asked at once; the first one
-     in priority order that has results wins, like the worker's automatic search. ----- */
-  var SR_API_ORDER = ['bing', 'mojeek', 'yahoo', 'ddg', 'marginalia', 'wikipedia'];
-  function srApiUrl(e, q) {
-    var Q = encodeURIComponent(q);
-    return {
-      bing: 'https://www.bing.com/search?setlang=en&cc=us&count=20&q=' + Q,
-      mojeek: 'https://www.mojeek.com/search?q=' + Q,
-      yahoo: 'https://search.yahoo.com/search?ei=UTF-8&p=' + Q,
-      ddg: 'https://html.duckduckgo.com/html/?q=' + Q,
-      marginalia: 'https://api.marginalia.nu/public/search/' + Q + '?count=20',
-      wikipedia: 'https://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=20&format=json&srsearch=' + Q
-    }[e];
-  }
-  function srTxt(n) { return n ? (n.textContent || '').replace(/\s+/g, ' ').trim() : ''; }
-  function srB64(v) {
-    v = String(v || '');
-    if (v.indexOf('a1') === 0) v = v.slice(2);
-    v = v.replace(/-/g, '+').replace(/_/g, '/');
-    while (v.length % 4) v += '=';
-    return atob(v);
-  }
-  function srFix(e, href) {
-    href = String(href || '');
-    try {
-      if (e === 'bing') {
-        var u = new URL(href);
-        if (/(^|\.)bing\.com$/i.test(u.hostname)) return u.pathname === '/ck/a' ? srB64(u.searchParams.get('u')) : '';
-        return href;
-      }
-      if (e === 'yahoo') {
-        var m = href.match(/\/RU=([^/]+)\//);
-        if (m) return decodeURIComponent(m[1]);
-        return /(^|\.)yahoo\.com$/i.test(new URL(href).hostname) ? '' : href;
-      }
-      if (e === 'ddg') {
-        var d = new URL(href.indexOf('//') === 0 ? 'https:' + href : href, 'https://duckduckgo.com');
-        var t = d.searchParams.get('uddg');
-        if (t) return t;
-        return /(^|\.)duckduckgo\.com$/i.test(d.hostname) ? '' : d.href;
-      }
-    } catch (x) { return ''; }
-    return href;
-  }
-  function srParse(e, j) {
-    var out = [];
-    if (e === 'wikipedia' || e === 'marginalia') {
-      var o = JSON.parse(j.body);
-      if (e === 'wikipedia') {
-        ((o.query && o.query.search) || []).forEach(function (r) {
-          out.push({ title: r.title, url: 'https://en.wikipedia.org/wiki/' + encodeURIComponent(String(r.title).replace(/ /g, '_')), snippet: srTxt({ textContent: String(r.snippet || '').replace(/<[^>]*>/g, '') }) });
-        });
-      } else {
-        (o.results || []).forEach(function (r) { out.push({ title: srTxt({ textContent: r.title || '' }), url: r.url || '', snippet: srTxt({ textContent: r.description || '' }).slice(0, 300) }); });
-      }
-      return out;
-    }
-    var doc = new DOMParser().parseFromString(j.body || '', 'text/html');
-    var sel = { bing: 'h2 > a[href]', mojeek: 'a.title[href]', yahoo: 'h3.title a[href]', ddg: 'a.result__a[href]' }[e];
-    Array.prototype.forEach.call(doc.querySelectorAll(sel), function (a) {
-      var url = srFix(e, a.getAttribute('href')), title = srTxt(a);
-      if (!url || !title) return;
-      var box = null;
-      if (e === 'bing') box = a.closest('li') || a.closest('.b_algo');
-      else if (e === 'mojeek') box = a.closest('li');
-      else if (e === 'yahoo') box = a.closest('li') || a.closest('div.dd');
-      else box = a.closest('.result');
-      var sn = box ? box.querySelector(e === 'mojeek' ? 'p.s' : e === 'ddg' ? '.result__snippet' : e === 'yahoo' ? '.compText, .fc-falcon, p' : 'p') : null;
-      out.push({ title: title, url: url, snippet: srTxt(sn).slice(0, 300) });
-    });
-    return out;
-  }
-  function srchApi(sr) {
-    var engines = sr.e === 'auto' ? SR_API_ORDER : [sr.e], tried = [], t0 = Date.now();
-    var one = function (e) {
-      return wfetch('/_og/get?url=' + encodeURIComponent(srApiUrl(e, sr.q)) + '&render=0&lite=1' + kq())
-        .then(function (r) { return r.json().then(function (j) { if (!j || j.error) throw new Error((j && j.error) || ('HTTP ' + r.status)); return j; }); })
-        .then(function (j) {
-          if (!j.ok) throw new Error('HTTP ' + j.status);
-          if (j.encoding !== 'text') throw new Error('not a page');
-          var seen = {}, res = srParse(e, j).filter(function (x) { if (!x.url || !/^https?:\/\//i.test(x.url) || seen[x.url]) return false; seen[x.url] = 1; return true; }).slice(0, 30);
-          tried.push({ engine: e, count: res.length });
-          return res;
-        })
-        .catch(function (err) { tried.push({ engine: e, count: 0, error: (err && err.message) || String(err) }); return []; });
-    };
-    var runs = engines.map(one);
-    var next = function (i) {
-      if (i >= runs.length) return { engine: null, results: [], tried: tried.slice(), api: true };
-      return runs[i].then(function (r) { return r.length ? { engine: engines[i], results: r, tried: tried.slice(), api: true, ms: Date.now() - t0 } : next(i + 1); });
-    };
-    return Promise.resolve(next(0));
-  }
-
   function srchLoad(sr) {
     var tok = ++srchTok, list = $('srchlist');
     $('srchapp').scrollTop = 0;
@@ -3755,13 +2858,13 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     });
     list.textContent = '';
     list.appendChild(el('div', 'ymsg', 'Searching…'));
-    (T && T.api ? srchApi(sr) : wfetch('/_og/search?q=' + encodeURIComponent(sr.q) + '&engine=' + encodeURIComponent(sr.e))
+    wfetch('/_og/search?q=' + encodeURIComponent(sr.q) + '&engine=' + encodeURIComponent(sr.e))
       .then(function (r) {
         return r.json().then(function (j) {
           if (!r.ok) throw new Error((j && j.error) || ('Error ' + r.status));
           return j;
         });
-      }))
+      })
       .then(function (j) { if (tok === srchTok) srchRender(j, sr); })
       .catch(function (err) {
         if (tok !== srchTok) return;
@@ -3780,7 +2883,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     var tried = (j.tried || []).map(function (t) { return engineName(t.engine) + ': ' + (t.count ? t.count + ' results' : (t.error || 'no results')); });
     var results = (j.results || []).filter(function (r) { return r && /^https?:\/\//i.test(r.url); });
     if (j.engine) {
-      var note = el('div', 'srchnote', 'Results via ' + engineName(j.engine) + (sr.e === 'auto' ? ' (automatic)' : '') + (j.api ? ' · fetched in API mode' + (j.ms ? ' · ' + j.ms + ' ms' : '') : ''));
+      var note = el('div', 'srchnote', 'Results via ' + engineName(j.engine) + (sr.e === 'auto' ? ' (automatic)' : ''));
       if (tried.length > 1) {
         var d = document.createElement('details');
         d.appendChild(el('summary', null, 'Engines tried'));
@@ -3806,132 +2909,23 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     });
   }
 
-  /* ---------- AI chat: AI Horde OpenAI-compatible endpoint, no API key ---------- */
-  var AI_KEY = '0000000000'; // AI Horde's public anonymous key
-  var AI_ENDPOINTS = [
-    { models: WORKER + '/_og/ai/models', chat: WORKER + '/_og/ai/chat' },
-    { models: 'https://oai.aihorde.net/v1/models', chat: 'https://oai.aihorde.net/v1/chat/completions' }
-  ];
-  var ai = { models: [], model: 'auto', busy: false, ctrl: null, msgs: [], loading: false };
-  var aiPanel = $('aipanel'), aiMsgs = $('aimsgs'), aiInput = $('aiinput'), aiSendBtn = $('aisend'), aiSel = $('aimodel'), aiStat = $('aistat');
+  /* ---------- AI chat: everything goes through the worker, always on Qwen3-14B ----------
+     The page does not pick a model and never talks to the AI service itself. The request is sent to the worker with the
+     same fetch helper that opens websites (wfetch / credFetch) and the worker fills in the model. */
+  var AI_MODEL = { id: 'Qwen3-14B', label: 'Qwen3-14B', reasoning: true, score: 0 }; // id is a placeholder: the worker replaces it
+  var ai = { models: [AI_MODEL], model: AI_MODEL.id, busy: false, ctrl: null, msgs: [], loading: false };
+  var aiPanel = $('aipanel'), aiMsgs = $('aimsgs'), aiInput = $('aiinput'), aiSendBtn = $('aisend'), aiStat = $('aistat');
 
   function setAiStat(text, isErr) {
     aiStat.textContent = text || '';
     aiStat.className = 'aistat' + (isErr ? ' err' : '');
   }
 
-  /* worker first (adds CORS + streaming); direct to AI Horde if the worker cannot be reached */
-  function aiFetch(kind, init) {
-    var i = 0;
-    function next() {
-      var headers = { 'Authorization': 'Bearer ' + AI_KEY };
-      var h2 = (init && init.headers) || {};
-      Object.keys(h2).forEach(function (k) { headers[k] = h2[k]; });
-      var opts = {};
-      Object.keys(init || {}).forEach(function (k) { opts[k] = init[k]; });
-      if (i === 0 && tok) headers['X-OG-Token'] = tok;
-      opts.headers = headers;
-      var cur = i;
-      return fetch(AI_ENDPOINTS[i][kind], opts).then(function (r) {
-        if (cur === 0 && r.status === 401 && access.locked) { access.authed = false; openUnlock(); }
-        return r;
-      }).catch(function (err) {
-        if (err && err.name === 'AbortError') throw err;
-        if (++i < AI_ENDPOINTS.length) return next();
-        throw err;
-      });
-    }
-    return next();
+  function aiFetch(kind, init) { // kind: 'chat' (the only call the page makes)
+    return wfetch('/_og/ai/' + kind, init);
   }
-
-  /* reasoning capability: trust flags from the endpoint if present, otherwise judge by model name */
-  function aiExplicit(m) {
-    if (!m || typeof m !== 'object') return null;
-    var keys = ['reasoning', 'supports_reasoning', 'supports_reasoning_effort', 'reasoning_effort', 'thinking', 'supports_thinking', 'is_reasoning'];
-    for (var i = 0; i < keys.length; i++) {
-      if (keys[i] in m) {
-        var v = m[keys[i]];
-        if (v && typeof v === 'object') return v.mode !== 'unsupported';
-        return !!v && v !== 'none' && v !== 'false';
-      }
-    }
-    var caps = m.capabilities || m.features || m.supported_parameters || m.tags;
-    if (Array.isArray(caps)) return caps.some(function (c) { return /reason|think/i.test(String(c)); }) ? true : null;
-    if (caps && typeof caps === 'object') {
-      for (var k in caps) if (/reason|think/i.test(k)) return !!caps[k];
-    }
-    return null;
-  }
-  function aiNameScore(id) {
-    var s = id.toLowerCase(), n = 0, r = false;
-    if (/qwen[-_ .]?3/.test(s)) { n += 40; r = true; }
-    if (/deepseek[-_ ]?r1|(^|[^a-z0-9])r1([^a-z0-9]|$)/.test(s)) { n += 40; r = true; }
-    if (/qwq/.test(s)) { n += 25; r = true; }
-    if (/think|reason|gpt[-_ ]?oss|magistral|glm[-_ ]?4\.?[5-9]/.test(s)) { n += 15; r = true; }
-    if (/thinking/.test(s)) n += 8;
-    if (/instruct[-_ ]?2507/.test(s) && !/thinking/.test(s)) n -= 15; // Qwen3 non-thinking variant
-    if (/coder/.test(s)) n -= 15;
-    var z = /(\d+(?:\.\d+)?)b(?![a-z])/.exec(s);
-    if (z) { var sz = parseFloat(z[1]); n += sz >= 7 && sz <= 40 ? 6 : (sz > 40 && sz <= 80 ? 2 : (sz > 80 ? -4 : 0)); }
-    return { score: n, reasoning: r };
-  }
-  function aiRank(list) {
-    var out = [], seen = {};
-    list.forEach(function (m) {
-      var id = typeof m === 'string' ? m : (m && (m.id || m.name || m.model));
-      if (!id || seen[id] || /embed|whisper|tts|diffusion|dall|image/i.test(id)) return;
-      if (m && typeof m.count === 'number' && m.count <= 0) return; // no online worker
-      seen[id] = 1;
-      var ns = aiNameScore(id), ex = aiExplicit(m);
-      var reasoning = ex === null ? ns.reasoning : ex;
-      var score = ns.score + (ex === true ? 50 : 0) + (ex === false ? -20 : 0);
-      if (m && typeof m.eta === 'number') score -= Math.min(m.eta / 30, 20);
-      out.push({ id: id, label: String(id).replace(/^[^/]+\//, ''), reasoning: reasoning, score: score });
-    });
-    out.sort(function (a, b) { return (b.reasoning - a.reasoning) || (b.score - a.score); });
-    return out;
-  }
-
-  function aiRenderSelect() {
-    aiSel.textContent = '';
-    aiSel.appendChild(new Option('Auto · best reasoning model', 'auto'));
-    var g1 = document.createElement('optgroup'); g1.label = 'Reasoning models';
-    var g2 = document.createElement('optgroup'); g2.label = 'Other models';
-    ai.models.forEach(function (m) { (m.reasoning ? g1 : g2).appendChild(new Option(m.label, m.id)); });
-    if (g1.children.length) aiSel.appendChild(g1);
-    if (g2.children.length) aiSel.appendChild(g2);
-    aiSel.value = ai.model;
-    if (aiSel.value !== ai.model) { ai.model = 'auto'; aiSel.value = 'auto'; }
-  }
-
-  function aiLoadModels() {
-    if (ai.loading) return;
-    ai.loading = true;
-    setAiStat('Getting ready…');
-    aiFetch('models', {}).then(function (r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    }).then(function (j) {
-      var list = Array.isArray(j) ? j : (j.data || j.models || []);
-      ai.models = aiRank(list);
-      if (!ai.models.length) throw new Error('no chat models are online right now');
-      aiRenderSelect();
-      var rc = ai.models.filter(function (m) { return m.reasoning; }).length;
-      setAiStat('');
-    }).catch(function (err) {
-      setAiStat('Could not list models: ' + (err && err.message ? err.message : err) + ' (will retry when you send)', true);
-    }).then(function () { ai.loading = false; });
-  }
-
-  function aiCandidates() {
-    if (ai.model !== 'auto') {
-      var one = ai.models.filter(function (m) { return m.id === ai.model; });
-      if (one.length) return one;
-    }
-    var pool = ai.models.filter(function (m) { return m.reasoning; });
-    if (!pool.length) pool = ai.models;
-    return pool.slice(0, 3);
-  }
+  function aiLoadModels() {} // nothing to load: the model is fixed
+  function aiCandidates() { return [AI_MODEL]; }
 
   /* splits <think>…</think> out of streamed text; also copes with a stray </think> */
   function makeSplitter(onReason, onText, onStray) {
@@ -4040,7 +3034,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   function aiEmpty() {
     aiMsgs.textContent = '';
     var b = el('div', 'aiempty');
-    b.innerHTML = '<div class="aiempty-ic"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg></div><h3>How can I help?</h3><p>Ask a question, paste text to rewrite, or get help with code. Free models from the AI Horde network are picked for you automatically, reasoning models first.</p>';
+    b.innerHTML = '<div class="aiempty-ic"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg></div><h3>How can I help?</h3><p>Ask a question, paste text to rewrite, or get help with code. Answers are written by Qwen3-14B.</p>';
     aiMsgs.appendChild(b);
   }
 
@@ -4195,11 +3189,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     var text = aiInput.value.trim();
     if (text) aiSendText(text, true);
   }
-  function aiReady() {
-    if (ai.models.length) return true;
-    setAiStat('Models are still loading… try again in a moment.', true); aiLoadModels();
-    return false;
-  }
+  function aiReady() { return true; }
   function aiSendText(text, fromInput) {
     if (ai.busy || !aiReady()) return;
     if (fromInput) { aiInput.value = ''; aiInput.style.height = 'auto'; }
@@ -4223,11 +3213,11 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     }, 1000);
     function attempt() {
       var m = cands[i]; label = m.label;
-      setAiStat('Asking ' + m.label + (m.reasoning ? ' (high reasoning effort)' : '') + '…');
+      setAiStat('Thinking…');
       return aiStream(m, history, bot).then(function () { return m; }).catch(function (err) {
         if (err && err.name === 'AbortError') throw err;
         if (++i < cands.length) {
-          setAiStat(m.label + ' failed (' + (err && err.message ? err.message : err) + '). Trying ' + cands[i].label + '…', true);
+          setAiStat('Trying again…', true);
           return attempt();
         }
         throw err;
@@ -4235,18 +3225,18 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     }
     attempt().then(function (m) {
       bot.done = true;
-      if (!bot.content) { bot.content = '(The model stopped while still thinking. Ask again, or pick another model.)'; bot.error = true; }
+      if (!bot.content) { bot.content = '(The model stopped while still thinking. Ask again.)'; bot.error = true; }
       aiPaint(bot);
       aiPersist(chat, myMsgs);
-      setAiStat('Answered by ' + m.label + ' in ' + Math.round((Date.now() - t0) / 1000) + 's');
+      setAiStat('Answered in ' + Math.round((Date.now() - t0) / 1000) + 's');
     }).catch(function (err) {
       bot.done = true;
       if (err && err.name === 'AbortError') {
         if (!bot.content && !bot.reasoning) { bot.content = '(stopped)'; bot.error = true; }
         setAiStat('Stopped.');
       } else {
-        if (!bot.content) { bot.content = 'Sorry, no AI Horde worker could answer: ' + (err && err.message ? err.message : err); bot.error = true; }
-        setAiStat('Request failed. The network may be busy, so try again or pick another model.', true);
+        if (!bot.content) { bot.content = 'Sorry, the AI could not answer right now. Please try again in a moment.'; bot.error = true; }
+        setAiStat('Something went wrong. Try again.', true);
       }
       aiPaint(bot);
       aiPersist(chat, myMsgs);
@@ -4390,7 +3380,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
         };
       });
       curId = typeof j.cur === 'string' ? j.cur : null;
-      if (typeof j.model === 'string') ai.model = j.model;
     } catch (e) { chatsOk = false; }
   }
   function chatsWrite() {
@@ -4517,7 +3506,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   $('chipai').addEventListener('click', openAiTab);
   $('aiclear').addEventListener('click', aiNewChat);
   $('aihistbtn').addEventListener('click', function () { aiHistToggle(!aiPanel.classList.contains('hist')); });
-  aiSel.addEventListener('change', function () { ai.model = aiSel.value; chatsSave(); var c = aiCandidates(); setAiStat('Using ' + (ai.model === 'auto' ? 'auto: ' : '') + c[0].label); });
   aiSendBtn.addEventListener('click', aiSend);
   aiInput.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); aiSend(); }
@@ -4568,7 +3556,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     }
     return next(0);
   }
-  var settings = { fav: 'default', name: 'default', custom: '', cookies: true, restore: true, history: true, bmbar: true, mode: 'browse', theme: 'lime', accent: '', pos: 'left', showGreet: true, showHead: true, showShort: true, showPower: true, showBg: true };
+  var settings = { fav: 'default', name: 'default', custom: '', cookies: true, restore: true, history: true, bmbar: true, theme: 'lime', accent: '', pos: 'left', showGreet: true, showHead: true, showShort: true, showPower: true, showBg: true };
 
   function settingsLoad() {
     try {
@@ -4581,7 +3569,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       if (typeof j.restore === 'boolean') settings.restore = j.restore;
       if (typeof j.history === 'boolean') settings.history = j.history;
       if (typeof j.bmbar === 'boolean') settings.bmbar = j.bmbar;
-      if (j.mode === 'api' || j.mode === 'browse') settings.mode = j.mode;
       if (typeof j.theme === 'string' && THEMES.some(function (t) { return t.id === j.theme; })) settings.theme = j.theme;
       if (typeof j.accent === 'string' && (j.accent === '' || /^#[0-9a-f]{6}$/i.test(j.accent))) settings.accent = j.accent;
       if (['left', 'center', 'right'].indexOf(j.pos) >= 0) settings.pos = j.pos;
@@ -4675,12 +3662,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     $('setRestore').checked = settings.restore;
     $('setHistory').checked = settings.history !== false;
     $('setBmbar').checked = settings.bmbar !== false;
-    Array.prototype.forEach.call($('setMode').querySelectorAll('button'), function (b) {
-      var on = b.getAttribute('data-m') === settings.mode;
-      b.classList.toggle('on', on);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-    renderAccess();
     renderLook();
   }
   function settingsChanged() { settingsSave(); applyTab(); renderSettings(); }
@@ -4825,42 +3806,12 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   $('setCookies').addEventListener('change', function () { settings.cookies = $('setCookies').checked; settingsSave(); toast(settings.cookies ? 'Logins will be remembered' : 'Cookies off for pages you open next'); });
   $('setRestore').addEventListener('change', function () { settings.restore = $('setRestore').checked; settingsSave(); saveTabs(); });
   $('setHistory').addEventListener('change', function () { settings.history = $('setHistory').checked; settingsSave(); toast(settings.history ? 'History is on' : 'History is off'); });
-  $('setMode').addEventListener('click', function (e) {
-    var b = e.target && e.target.closest ? e.target.closest('button') : null;
-    if (!b) return;
-    var m = b.getAttribute('data-m') === 'api' ? 'api' : 'browse';
-    if (settings.mode === m) return;
-    settings.mode = m; settingsSave(); renderSettings();
-    toast(m === 'api' ? 'New pages and searches open in API mode' : 'New pages and searches open in Browse mode');
-  });
   $('setBmbar').addEventListener('change', function () { settings.bmbar = $('setBmbar').checked; settingsSave(); renderBm(); });
   $('clrHist').addEventListener('click', function () { histClear(); });
 
-  /* ---------- access password (optional: set ACCESS_PASSWORD on the worker) ---------- */
-  var TOK_KEY = 'offgrid.token.v1', toastTimer = 0;
-  function tokLoad() {
-    try {
-      var j = JSON.parse(localStorage.getItem(TOK_KEY) || 'null');
-      if (j && typeof j.t === 'string' && +j.exp > Date.now() / 1000) tok = j.t;
-    } catch (e) {}
-  }
-  function tokSave(t, exp) {
-    tok = t;
-    try { if (t) localStorage.setItem(TOK_KEY, JSON.stringify({ t: t, exp: exp })); else localStorage.removeItem(TOK_KEY); } catch (e) {}
-  }
-  function kq() { return tok ? '&k=' + encodeURIComponent(tok) : ''; }
+  var toastTimer = 0;
 
-  function wfetch(path, init) {
-    var o = {}, h = {};
-    Object.keys(init || {}).forEach(function (k) { o[k] = init[k]; });
-    Object.keys(o.headers || {}).forEach(function (k) { h[k] = o.headers[k]; });
-    if (tok) h['X-OG-Token'] = tok;
-    o.headers = h;
-    return fetch(WORKER + path, o).then(function (r) {
-      if (r.status === 401 && access.locked) { access.authed = false; openUnlock(); }
-      return r;
-    });
-  }
+  function wfetch(path, init) { return credFetch(WORKER + path, init || {}); }
 
   function toast(text) {
     var t = $('toast');
@@ -4869,55 +3820,98 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     toastTimer = setTimeout(function () { t.classList.remove('on'); }, 2600);
   }
 
-  function openUnlock(msg) {
-    $('lockmodal').classList.add('on');
-    $('lockErr').textContent = msg || '';
-    setTimeout(function () { $('lockPw').focus(); }, 30);
+  /* ---------- cookies and site storage, kept per website (stored in this browser only) ----------
+     A page runs in a sandboxed frame that cannot keep anything itself. So cookies and localStorage are saved here, one set
+     per website, handed to the page when it opens, and updated whenever the page changes them. Cookies a site sets with
+     Set-Cookie arrive in a header from the worker, and are sent back to that site when its pages are opened. */
+  var SITES_KEY = 'offgrid.sitedata.v1', sites = null, sitesTimer = 0;
+  function siteOf(u) {
+    try { var x = new URL(u); return /^https?:$/.test(x.protocol) ? x.hostname.toLowerCase().replace(/^www\./, '') : ''; } catch (e) { return ''; }
   }
-  function closeUnlock() { $('lockmodal').classList.remove('on'); $('lockPw').value = ''; }
-  function afterUnlock() {
-    if (pendingStart) { pendingStart = false; startTabs(); return; }
-    var u = T.hist[T.idx];
-    if (u) show(u);
-    if (aiPanel.classList.contains('on') && !ai.models.length) aiLoadModels();
+  function sitesLoad() {
+    if (sites) return sites;
+    try { sites = JSON.parse(localStorage.getItem(SITES_KEY) || 'null'); } catch (e) { sites = null; }
+    if (!sites || typeof sites !== 'object' || Array.isArray(sites)) sites = {};
+    return sites;
   }
-  function doUnlock() {
-    var pw = $('lockPw').value;
-    if (!pw) return;
-    var b = $('lockBtn');
-    b.disabled = true; $('lockErr').textContent = '';
-    fetch(WORKER + '/_og/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) })
-      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Could not unlock'); return j; }); })
-      .then(function (j) { tokSave(j.token || '', j.exp || 0); access.authed = true; closeUnlock(); renderAccess(); toast('Unlocked'); afterUnlock(); })
-      .catch(function (err) { $('lockErr').textContent = err && err.message ? err.message : 'Could not unlock'; $('lockPw').select(); })
-      .then(function () { b.disabled = false; });
+  function sitesSave() {
+    clearTimeout(sitesTimer);
+    sitesTimer = setTimeout(function () {
+      var s = sitesLoad();
+      for (var tries = 0; tries < 30; tries++) {
+        try { localStorage.setItem(SITES_KEY, JSON.stringify(s)); return; }
+        catch (e) { // storage full: forget the site used longest ago and try again
+          var old = '', ot = Infinity;
+          for (var k in s) if (s[k] && (s[k].t || 0) < ot) { ot = s[k].t || 0; old = k; }
+          if (!old) return;
+          delete s[old];
+        }
+      }
+    }, 200);
   }
-  $('lockBtn').addEventListener('click', doUnlock);
-  $('lockPw').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); doUnlock(); } });
-
-  function renderAccess() {
-    var s = $('accStatus'), b = $('accBtn');
-    if (!access.locked) { s.textContent = 'Open: no password is set on the worker. Add a secret named ACCESS_PASSWORD to lock it.'; b.style.display = 'none'; return; }
-    b.style.display = '';
-    if (access.authed && tok) { s.textContent = 'Unlocked on this device'; b.textContent = 'Lock now'; }
-    else { s.textContent = 'Locked'; b.textContent = 'Unlock'; }
+  function siteGet(site, create) {
+    var s = sitesLoad(), r = s[site];
+    if (!r || typeof r !== 'object') { if (!create) return { c: {}, l: {} }; r = s[site] = { c: {}, l: {}, t: Date.now() }; }
+    if (!r.c || typeof r.c !== 'object') r.c = {};
+    if (!r.l || typeof r.l !== 'object') r.l = {};
+    var now = Date.now();
+    for (var n in r.c) if (r.c[n] && r.c[n].e > 0 && r.c[n].e <= now) delete r.c[n];
+    return r;
   }
-  $('accBtn').addEventListener('click', function () {
-    if (access.locked && access.authed && tok) { tokSave('', 0); access.authed = false; renderAccess(); toast('Locked'); }
-    else openUnlock();
-  });
-
-  /* ---------- cookies kept per site (stored in this browser) ---------- */
+  function siteHeader(site) { // what the worker is told to send as this site's Cookie
+    if (!site || settings.cookies === false) return '';
+    var r = siteGet(site), out = [];
+    for (var n in r.c) if (r.c[n] && typeof r.c[n].v === 'string') out.push(n + '=' + r.c[n].v);
+    return out.length ? site + '~' + encodeURIComponent(out.join('; ')) : '';
+  }
+  function siteEat(site, header) { // cookies the website set with Set-Cookie (read from the worker's answer)
+    if (!site || !header || settings.cookies === false) return;
+    try {
+      var list = JSON.parse(decodeURIComponent(header)), r = siteGet(site, true);
+      for (var i = 0; i < list.length && i < 100; i++) {
+        var c = list[i];
+        if (!c || typeof c.n !== 'string' || !c.n) continue;
+        if (+c.e === -1) delete r.c[c.n]; else r.c[c.n] = { v: String(c.v == null ? '' : c.v), e: +c.e || 0 };
+      }
+      r.t = Date.now(); sitesSave();
+    } catch (e) {}
+  }
+  function siteSet(site, c, l) { // the page's own cookies / localStorage after a change
+    var cj = {}, lj = {}, n, cnt = 0, size = 0;
+    for (n in c) {
+      if (!c[n] || typeof c[n].v !== 'string' || ++cnt > 150) continue;
+      cj[n] = { v: c[n].v.slice(0, 4096), e: +c[n].e || 0 };
+    }
+    for (n in l) {
+      if (typeof l[n] !== 'string') continue;
+      size += n.length + l[n].length;
+      if (size > 400000) break;
+      lj[n] = l[n];
+    }
+    var r = siteGet(site, true);
+    r.c = cj; r.l = lj; r.t = Date.now();
+    sitesSave();
+  }
+  function siteState(site) { // a script placed in front of the page: the saved data for this website
+    var st = { s: site || '', c: {}, l: {} };
+    if (site && settings.cookies !== false) { var r = siteGet(site); st.c = r.c; st.l = r.l; } else st.off = 1;
+    return '<scr' + 'ipt>window.__OG_STATE__=' + JSON.stringify(st).replace(/</g, '\\u003c') + ';</scr' + 'ipt>';
+  }
+  function withState(html, site) {
+    var st = siteState(site), done = false;
+    var out = html.replace(/<html[^>]*>/i, function (m) { done = true; return m + st; });
+    return done ? out : st + out;
+  }
   function clearCookies(host) {
     return new Promise(function (resolve) {
-      var f = document.createElement('iframe'), done = false, timer;
-      f.style.display = 'none';
-      function finish(n) { if (done) return; done = true; clearTimeout(timer); window.removeEventListener('message', onMsg); f.remove(); resolve(n); }
-      function onMsg(e) { if (e.source === f.contentWindow && e.data && e.data.offgrid === 'cookies-cleared') finish(+e.data.n || 0); }
-      window.addEventListener('message', onMsg);
-      timer = setTimeout(function () { finish(-1); }, 7000);
-      f.src = WORKER + '/_og/cookies/clear?' + (host ? 'site=' + encodeURIComponent(host) + '&' : '') + 'x=1' + kq();
-      document.body.appendChild(f);
+      var s = sitesLoad(), key = host ? siteOf('https://' + host) : '', n = 0;
+      Object.keys(s).forEach(function (k) {
+        if (key && k !== key) return;
+        n += Object.keys((s[k] && s[k].c) || {}).length;
+        delete s[k];
+      });
+      sitesSave();
+      resolve(n);
     });
   }
   function cookiesDone(n) { toast(n < 0 ? 'Could not clear cookies' : (n + (n === 1 ? ' cookie' : ' cookies') + ' cleared')); }
@@ -5369,8 +4363,8 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   function frameShown(t) {
     t = t || T;
     var u = t && t.hist[t.idx];
-    if (!u || !/^https?:\/\//i.test(u) || !t.frame || !t.frameActive || t.api) return false;
-    return !/(^|\s)(yt|srch|aitab|set|api|msg)(\s|$)/.test(viewer.className);
+    if (!u || !/^https?:\/\//i.test(u) || !t.frame || !t.frameActive) return false;
+    return !/(^|\s)(yt|srch|aitab|set|msg)(\s|$)/.test(viewer.className);
   }
   function zApply() {
     if (!T) return;
@@ -5910,16 +4904,10 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     tourMaybe();
   }
   function boot() {
-    tokLoad();
     loadPrevSession();
     renderTabs();
     updateNav();
-    wfetch('/_og/status').then(function (r) { return r.json(); }).then(function (j) {
-      access.locked = !!j.locked; access.authed = !!j.authed;
-      renderAccess();
-      if (j.locked && !j.authed) { tokSave('', 0); pendingStart = true; openUnlock(); }
-      else startTabs();
-    }).catch(function () { startTabs(); });
+    startTabs();
   }
 
   /* ---------- controls ---------- */
@@ -6069,7 +5057,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   });
 
   /* ---------- welcome tour: shows once, replay from Settings ----------
-     Three forced missions:  1 disguise the tab   2 open wtfq.online in Browse mode   3 tap API, then Browse.
+     Two forced missions:  1 disguise the tab   2 open wtfq.online in Browse mode.
      Those steps cannot be skipped (Next stays off until the thing is done). The one exception: if wtfq.online
      will not load, a "skip this part" button appears. The demo site opens in its own tab, closed again at the end. */
   var TOUR_KEY = 'offgrid.tour.v1';
@@ -6079,33 +5067,31 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
 
   function tourNote(k) { if (tourOn) tourFlags[k] = true; }
   function tourAlive() { return !!(tourTab && tabs.indexOf(tourTab) >= 0); }
-  function tourMsgUp() { return !!(tourAlive() && ((T === tourTab && viewer.classList.contains('msg')) || (!tourTab.api && (tourTab.fetchFailed || tourTab.httpStatus >= 400)))); }
+  function tourMsgUp() { return !!(tourAlive() && ((T === tourTab && viewer.classList.contains('msg')) || (tourTab.fetchFailed || tourTab.httpStatus >= 400))); }
   /* Browse mode: the frame holds real page content and has fired its load event */
   function tourBrowseLoaded(t) {
     var f = t && t.frame;
-    return !!(t && !t.api && t.loaded && !t.fetchFailed && !(t.httpStatus >= 400) && f && (f.hasAttribute('srcdoc') || (f.getAttribute('src') && f.getAttribute('src') !== 'about:blank')));
+    return !!(t && t.loaded && !t.fetchFailed && !(t.httpStatus >= 400) && f && (f.hasAttribute('srcdoc') || (f.getAttribute('src') && f.getAttribute('src') !== 'about:blank')));
   }
   /* open wtfq.online in its own tab, in Browse mode (or bring that tab back and put it in Browse mode) */
   function tourSite() {
     if (tourAlive()) {
       if (T !== tourTab) switchTo(tourTab);
-      if (tourTab.api) { tourTab.api = false; show(tourTab.hist[tourTab.idx] || TOUR_SITE); }
       return;
     }
     var t = addTab(null);
     tourOwn = !!t;
     if (!t) t = T; // tab limit reached: use the current tab instead
-    tourTab = t; t.api = false;
+    tourTab = t;
     go(TOUR_SITE);
   }
   function tourStepIndex(id) { for (var i = 0; i < TOUR_STEPS.length; i++) if (TOUR_STEPS[i].id === id) return i; return -1; }
-  function tourModeBtn(m) { var sw = $('modesw'); return sw ? sw.querySelector('[data-m="' + m + '"]') : null; }
 
   var TOUR_STEPS = [
     { id: 'welcome', tag: 'Welcome \u00b7 about a minute', title: 'Ready to go off the grid?',
-      text: 'This is the fun part. Finish <b>3 quick missions</b> and you unlock:<ul><li>A one-click <b>disguise</b> for your tab</li><li>Two ways into a blocked site: <b>Browse</b> and <b>API</b></li><li>The shortcuts most people never find</li></ul><p>Once you hit start, you are in until the end.</p>',
+      text: 'This is the fun part. Finish <b>2 quick missions</b> and you unlock:<ul><li>A one-click <b>disguise</b> for your tab</li><li>A live, anonymous way into blocked sites</li><li>The shortcuts most people never find</li></ul><p>Once you hit start, you are in until the end.</p>',
       next: "Let's go", skip: 'Maybe later' },
-    { id: 'disguise', gate: true, click: true, tag: 'Mission 1 of 3', target: function () { return $('home'); }, title: 'Disguise your tab',
+    { id: 'disguise', gate: true, click: true, tag: 'Mission 1 of 2', target: function () { return $('home'); }, title: 'Disguise your tab',
       text: 'Teacher walking by? One click turns this tab into <b>Google Classroom</b>: the icon and the name both change. <b>Click the glowing logo</b> to do it. Right-click it any time to pick your own tab name.',
       tryLabel: function () { return settings.fav === 'classroom' ? 'Switch back' : 'Disguise it'; }, tryDo: function () { toggleDisguise(); },
       check: function () {
@@ -6115,28 +5101,14 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       } },
     { id: 'search', tag: 'Step 4', target: function () { return $('form'); }, title: 'Search or type an address',
       text: 'Type a website or a search here. On the home page you can also press <b>/</b> to jump straight to the search box.' },
-    { id: 'browse', gate: true, site: true, tag: 'Mission 2 of 3', target: function () { return viewer; }, title: 'Open a real site',
+    { id: 'browse', gate: true, site: true, tag: 'Mission 2 of 2', target: function () { return viewer; }, title: 'Open a real site',
       enter: function () { tourSite(); },
-      text: 'Watch this. We are opening <b>wtfq.online</b> in a new tab using <b>Browse mode</b>. The site runs live like a normal tab, with everything sent through the relay. This is how you get past most blocks.',
+      text: 'Watch this. We are opening <b>wtfq.online</b> in a new tab. The site runs live like a normal tab, with everything sent through OFFGRID. This is how you get past most blocks.',
       check: function () {
         var up = tourMsgUp(), ok = tourAlive() && tourBrowseLoaded(tourTab) && !up;
         if (ok) tourFlags.site = true;
         return { ok: ok, fail: up, items: [['wtfq.online loaded in Browse mode', ok]],
-          note: ok ? 'It is running live. Next up: the other mode.' : up ? 'wtfq.online did not load.' : 'Loading wtfq.online\u2026' };
-      } },
-    { id: 'modes', gate: true, site: true, click: true, tag: 'Mission 3 of 3', target: function () { var m = $('modesw'); return m && !m.hidden ? m : null; }, title: 'Now try both modes',
-      enter: function () { tourFlags.api = false; tourFlags.browse2 = false; tourSite(); },
-      text: 'See the <b>Browse | API</b> switch in the glowing bar? <b>Browse</b> runs the site live. <b>API</b> asks for the page in one request and shows you the details, which gets through the strictest blocks. <b>Tap API, then tap Browse</b> and watch the same page load both ways.',
-      tryLabel: function () { return !tourFlags.api ? 'Switch to API' : !tourFlags.browse2 ? 'Switch to Browse' : ''; },
-      tryDo: function () { var b = tourModeBtn(tourFlags.api ? 'browse' : 'api'); if (b) b.click(); },
-      check: function () {
-        var alive = tourAlive(), t = tourTab, up = tourMsgUp();
-        if (alive && t.api && t.apiRes && !t.apiRes.error) tourFlags.api = true;
-        if (alive && tourFlags.api && !t.api && tourBrowseLoaded(t) && !up) tourFlags.browse2 = true;
-        var bad = !!(alive && t.api && t.apiRes && t.apiRes.error) || up, ok = !!(tourFlags.api && tourFlags.browse2);
-        return { ok: ok, fail: bad,
-          items: [['Tap API and let the page load', !!tourFlags.api], ['Tap Browse to switch back', !!tourFlags.browse2]],
-          note: ok ? 'Same page, two ways in. In API mode, the arrow next to the switch lets you pick Fetch or GET.' : bad ? 'wtfq.online did not load that way.' : '' };
+          note: ok ? 'It is running live, like a normal tab.' : up ? 'wtfq.online did not load.' : 'Loading wtfq.online\u2026' };
       } },
     { id: 'tabs', tag: 'Power move', target: function () { return $('tabbar'); }, title: 'Tabs',
       text: 'Open as many tabs as you like and <b>drag</b> them to reorder. Hold <b>Ctrl</b> (or Cmd) while clicking a favourite or bookmark to open it in a new tab. Your tabs can be restored next time.' },
@@ -6144,12 +5116,10 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       text: 'The <b>three lines</b> open the menu: new tab, reopen a closed tab, bookmarks, history, copy link and <b>Full screen</b>. Full screen slides the top and bottom bars away. Move your mouse to the very top edge to bring back an <b>arrow</b> that takes you out again, or press <b>Esc</b>.' },
     { id: 'bookmarks', tag: 'Power move', target: function () { return $('starbtn'); }, title: 'Bookmarks',
       text: 'Star a page to keep it. Bookmarks appear in the bar under the address bar and as <b>Favourites</b> on the home page. Right-click one to rename or edit it.' },
-    { id: 'settings', tag: 'Last stop', target: function () { return $('menubtn'); }, title: 'Settings',
-      text: 'Open the menu and choose <b>Settings</b> to change the tab look, the default page mode (Browse or API), cookies, history and the bookmarks bar. You can replay this tour from there too.' },
     { id: 'finale', finale: true, tag: 'Mission complete', title: 'You are officially off the grid',
       text: function () {
         var row = function (label, on, off) { return '<li' + (on ? '' : ' class="off"') + '>' + (on ? label : label + ' (' + off + ')') + '</li>'; };
-        return 'Here is what you unlocked:<ul>' + row('Tab disguise', tourFlags.disguise, 'skipped') + row('Browse mode', tourFlags.site, 'skipped') + row('API mode', tourFlags.api, 'skipped') + '</ul><p>Search for something or open a favourite to start. Happy browsing!</p>';
+        return 'Here is what you unlocked:<ul>' + row('Tab disguise', tourFlags.disguise, 'skipped') + row('Browse mode', tourFlags.site, 'skipped') + '</ul><p>Search for something or open a favourite to start. Happy browsing!</p>';
       }, next: 'Start browsing' }
   ];
 
