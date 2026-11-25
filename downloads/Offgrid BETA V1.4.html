@@ -3,7 +3,7 @@
 <head>
 <script>
 /* ===== OFFGRID version config (edit these two for each release) ===== */
-window.OFFGRID = { release: 'BETA', version: 'V1.3' };
+window.OFFGRID = { release: 'BETA', version: 'V1.4' };
 (function () {
   var o = window.OFFGRID;
   try { console.log('%cOFFGRID%c ' + o.release + ' ' + o.version, 'background:#c8ff5f;color:#11170d;font-weight:800;padding:2px 6px;border-radius:4px', 'color:#7ef0c0'); } catch (e) {}
@@ -1272,8 +1272,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     <p>A newer version of OFFGRID is available. Update to get the latest features and fixes.</p>
     <div class="updvers"><span id="updCur">V0</span><i>&rarr;</i><span id="updNew">V0</span></div>
     <div class="updbtns">
-      <button class="btn" id="updApp" type="button"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg>Open in OFFGRID</button>
-      <button class="btn ghost" id="updGo" type="button"><svg class="ic" aria-hidden="true"><use href="#i-expand"/></svg>Open in browser</button>
+      <button class="btn" id="updGo" type="button"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span id="updGoTxt">Download update</span></button>
       <button class="btn ghost sm" id="updLater" type="button">Later</button>
     </div>
   </div>
@@ -1812,7 +1811,17 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       var ct = (r.headers.get('content-type') || '').toLowerCase();
       if (my !== t.ftok || !t.frame) { clearTimeout(timer); ctl.abort(); return; }
       if (ct.indexOf('text/html') < 0) { // a file, image or video: let the frame open it directly
-        try { noteFileAnswer(r, ct, url); } catch (e0) {}
+        var attName = ''; try { attName = noteFileAnswer(r, ct, url); } catch (e0) {}
+        if (attName && !post) {
+          clearTimeout(timer); t.ctl = null;
+          return r.blob().then(function (b) {
+            addDownload(attName, proxied(url), hostOf(url)); saveBlob(b, attName);
+            if (my !== t.ftok) return;
+            if (t.idx > 0) { t.hist.splice(t.idx, 1); t.idx--; if (t === T) { updateNav(); show(t.hist[t.idx]); } } // stay on the page the link was on
+            else if (t === T) { progress(false); showNotice('Download started', attName + ' is downloading.'); }
+          });
+        }
+        if (attName) addDownload(attName, proxied(url), hostOf(url));
         clearTimeout(timer); t.ctl = null;
         if (post) { // the answer to a POST cannot be asked for again, so the frame opens what was already received
           return r.blob().then(function (b) {
@@ -4340,16 +4349,29 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     document.addEventListener('keydown', function (e) {
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'f' || e.key === 'F')) { e.preventDefault(); post({ offgrid: 'findkey' }); }
     }, true);
-    function dl(a) {
+    var bypass = false;
+    function dl(a) { /* true when the parent takes over the download */
       var h = a.href || '', n = a.getAttribute('download') || '';
       if (!n) { try { n = decodeURIComponent(h.split('#')[0].split('?')[0].split('/').pop()); } catch (x) { n = ''; } }
-      post({ offgrid: 'dl', name: n || 'download', url: /^https?:/i.test(h) ? h : '' });
+      n = n || 'download';
+      if (/^https?:/i.test(h)) { post({ offgrid: 'dl', name: n, url: h }); return true; }
+      if (/^(blob|data):/i.test(h)) {
+        fetch(h).then(function (r) { return r.blob(); }).then(function (b) { post({ offgrid: 'dlblob', name: n, blob: b }); })
+          .catch(function () { bypass = true; try { a.click(); } finally { bypass = false; } });
+        return true;
+      }
+      return false;
     }
     document.addEventListener('click', function (e) {
-      var a = e.target && e.target.closest && e.target.closest('a[download]'); if (a) dl(a);
+      if (bypass) return;
+      var a = e.target && e.target.closest && e.target.closest('a[download]');
+      if (a && dl(a)) { e.preventDefault(); e.stopPropagation(); }
     }, true);
     var oc = HTMLAnchorElement.prototype.click;
-    HTMLAnchorElement.prototype.click = function () { try { if (this.hasAttribute('download')) dl(this); } catch (x) {} return oc.apply(this, arguments); };
+    HTMLAnchorElement.prototype.click = function () {
+      try { if (!bypass && this.hasAttribute('download') && dl(this)) return; } catch (x) {}
+      return oc.apply(this, arguments);
+    };
     post({ offgrid: 'hready' });
   }
   function withHelper(html) {
@@ -4415,14 +4437,44 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     if (dlPanel.classList.contains('on')) dlRender(); else dlBtn.classList.add('has');
     toast('Downloading ' + name);
   }
+  /* the file name of an answer that is a download, or '' when it is just something to show */
   function noteFileAnswer(r, ct, url) {
     var cd = r.headers.get('content-disposition') || '';
-    var file = /attachment/i.test(cd);
-    if (!file) return;
+    if (!/attachment/i.test(cd)) return '';
     var m = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(cd), n = '';
     if (m) { try { n = decodeURIComponent(m[1]); } catch (e) { n = m[1]; } }
     if (!n) { try { n = decodeURIComponent(new URL(url).pathname.split('/').pop()); } catch (e) {} }
-    addDownload(n || 'download', proxied(url), hostOf(url));
+    return n || 'download';
+  }
+  /* hands a file to the browser's own downloader (it lands in the browser's Downloads, not just in the list here) */
+  function saveBlob(blob, name) {
+    var a = document.createElement('a'), u = URL.createObjectURL(blob);
+    a.href = u; a.download = String(name || 'download'); a.rel = 'noopener'; a.style.display = 'none';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { try { URL.revokeObjectURL(u); } catch (e) {} }, 60000);
+  }
+  function dlFetchUrl(u) { return u.indexOf(WORKER + '/?url=') === 0 ? u : proxied(u); }
+  /* fetches a file and saves it; rejects (with the reason) if it cannot, and never navigates the page away */
+  function fetchAndSave(url, name, host, direct) {
+    var tries = direct ? [url, dlFetchUrl(url)] : [dlFetchUrl(url)];
+    function attempt(i) {
+      return fetch(tries[i], { cache: 'no-store' }).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.blob();
+      }).then(function (b) {
+        if (!b || !b.size) throw new Error('empty file');
+        saveBlob(b, name); return true;
+      }, function (e) {
+        if (i + 1 < tries.length) return attempt(i + 1);
+        throw e;
+      });
+    }
+    return attempt(0);
+  }
+  function startDownload(name, url, host) {
+    name = String(name || 'download').slice(0, 160);
+    addDownload(name, url, host);
+    if (url && /^https?:\/\//i.test(url)) fetchAndSave(url, name, host, false).catch(function (e) { toast('Could not download ' + name + (e && e.message ? ' (' + e.message + ')' : '')); });
   }
   function ago(t) {
     var s = Math.max(0, Math.round((Date.now() - t) / 1000));
@@ -4448,7 +4500,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       var ic = el('span', 'dli'); ic.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>';
       var tx = el('span', 'dlt'); tx.appendChild(el('b', null, d.n)); tx.appendChild(el('small', null, (d.h ? d.h + ' \u00b7 ' : '') + ago(d.t)));
       row.appendChild(ic); row.appendChild(tx);
-      if (d.p) row.addEventListener('click', function () { dlClose(); window.open(d.p, '_blank', 'noopener'); });
+      if (d.p) row.addEventListener('click', function () { dlClose(); toast('Downloading ' + d.n); fetchAndSave(d.p, d.n, d.h, false).catch(function (e) { toast('Could not download ' + d.n + (e && e.message ? ' (' + e.message + ')' : '')); }); });
       list.appendChild(row);
     });
     dlPanel.appendChild(list);
@@ -4550,7 +4602,13 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     } else if (d.offgrid === 'findkey') {
       if (t === T) findOpen();
     } else if (d.offgrid === 'dl') {
-      addDownload(String(d.name || 'download'), typeof d.url === 'string' ? d.url : '', t.hist[t.idx] ? hostOf(t.hist[t.idx]) : '');
+      startDownload(String(d.name || 'download'), typeof d.url === 'string' ? d.url : '', t.hist[t.idx] ? hostOf(t.hist[t.idx]) : '');
+    } else if (d.offgrid === 'dlblob') {
+      if (typeof Blob !== 'undefined' && d.blob instanceof Blob) {
+        var bn = String(d.name || 'download').slice(0, 160);
+        addDownload(bn, '', t.hist[t.idx] ? hostOf(t.hist[t.idx]) : '');
+        saveBlob(d.blob, bn);
+      }
     }
   });
 
@@ -5335,7 +5393,8 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   var APP_RELEASE = window.OFFGRID.release;
   var APP_VERSION = window.OFFGRID.version;
   var VERSION_URL = 'https://offgrid.wtfq.online/version.json';
-  var DOWNLOAD_URL = 'https://offgrid.wtfq.online';
+  var DOWNLOAD_DIR = 'https://offgrid.wtfq.online/downloads/';
+  var latestInfo = null, latestVer = '';
   var verLater = false;
 
   function verParts(v) { return String(v || '').replace(/^\s*v/i, '').split('.').map(function (n) { return parseInt(n, 10) || 0; }); }
@@ -5351,6 +5410,8 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     }).then(function (j) {
       var v = typeof j === 'string' ? j : (j && (j.version || j.v));
       if (!v) throw new Error('no version');
+      latestInfo = (j && typeof j === 'object') ? j : {};
+      latestVer = String(v);
       return String(v);
     });
   }
@@ -5361,7 +5422,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
         verStatus('Update available: ' + latest + '.');
         if (manual || !verLater) {
           $('updCur').textContent = APP_VERSION; $('updNew').textContent = latest;
-          $('updmodal').classList.add('on'); $('updApp').focus();
+          $('updmodal').classList.add('on'); $('updGo').focus();
         }
       } else {
         verStatus('You are up to date.');
@@ -5374,8 +5435,51 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   }
   $('verRelease').textContent = APP_RELEASE;
   $('verNum').textContent = APP_VERSION;
-  $('updGo').addEventListener('click', function () { $('updmodal').classList.remove('on'); window.open(DOWNLOAD_URL, '_blank', 'noopener'); });
-  $('updApp').addEventListener('click', function () { $('updmodal').classList.remove('on'); addTab(DOWNLOAD_URL); });
+  /* the update file is offgrid.wtfq.online/downloads/Offgrid <release> <version>.html, e.g. Offgrid BETA V1.3.html.
+     release and version come from version.json: { "version": "V1.3", "release": "BETA" } */
+  function updateFileName() {
+    var rel = (latestInfo && latestInfo.release) || APP_RELEASE;
+    var ver = (latestInfo && (latestInfo.version || latestInfo.v)) || latestVer;
+    function clean(x) { return String(x).trim().replace(/[\\\/?#%:*"<>|]+/g, ''); }
+    return 'Offgrid ' + clean(rel) + ' ' + clean(ver) + '.html';
+  }
+  function fetchText(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }); }
+  /* backup: the first file listed in the downloads folder */
+  function listedUpdateFile() {
+    var q = DOWNLOAD_DIR + '?t=' + Date.now();
+    return fetchText(q).catch(function () { return fetchText(dlFetchUrl(q)); }).then(function (html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html'), base = new URL(DOWNLOAD_DIR), found = '';
+      Array.prototype.some.call(doc.querySelectorAll('a[href]'), function (a) {
+        var h = a.getAttribute('href') || '', u;
+        if (!h || h.charAt(0) === '?' || h.charAt(0) === '#' || /^(mailto|javascript):/i.test(h)) return false;
+        try { u = new URL(h, base); } catch (e) { return false; }
+        if (u.origin !== base.origin || u.pathname.indexOf(base.pathname) !== 0) return false;
+        var rest = u.pathname.slice(base.pathname.length);
+        if (!rest || /\/$/.test(rest) || /^index\.html?$/i.test(rest)) return false;
+        found = u.origin + u.pathname; return true;
+      });
+      if (!found) throw new Error('no file listed');
+      return found;
+    });
+  }
+  function fileNameOf(u, fb) { try { return decodeURIComponent(new URL(u).pathname.split('/').pop()) || fb; } catch (e) { return fb; } }
+  var updBusy = false;
+  $('updGo').addEventListener('click', function () {
+    if (updBusy) return;
+    updBusy = true;
+    var btn = $('updGo'), tx = $('updGoTxt'), old = tx.textContent;
+    btn.disabled = true; tx.textContent = 'Downloading...';
+    var want = DOWNLOAD_DIR + encodeURIComponent(updateFileName()), got = want;
+    addDownload(updateFileName(), want, hostOf(want));
+    fetchAndSave(want, updateFileName(), hostOf(want), true).catch(function (err) {
+      return listedUpdateFile().then(function (u) {
+        if (u === want) throw err;
+        got = u; return fetchAndSave(u, fileNameOf(u, 'OFFGRID-update'), hostOf(u), true);
+      }, function () { throw err; });
+    }).then(function () { $('updmodal').classList.remove('on'); }, function (err) {
+      toast('Update download failed' + (err && err.message ? ' (' + err.message + ')' : '') + '. Try again later.');
+    }).then(function () { updBusy = false; btn.disabled = false; tx.textContent = old; });
+  });
   $('updLater').addEventListener('click', function () { verLater = true; $('updmodal').classList.remove('on'); });
   $('verCheck').addEventListener('click', function () { verStatus('Checking...'); verCheck(true); });
 
