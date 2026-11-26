@@ -3,7 +3,7 @@
 <head>
 <script>
 /* ===== OFFGRID version config (edit these two for each release) ===== */
-window.OFFGRID = { release: 'BETA', version: 'V1.4' };
+window.OFFGRID = { release: 'BETA', version: 'V1.5' };
 (function () {
   var o = window.OFFGRID;
   try { console.log('%cOFFGRID%c ' + o.release + ' ' + o.version, 'background:#c8ff5f;color:#11170d;font-weight:800;padding:2px 6px;border-radius:4px', 'color:#7ef0c0'); } catch (e) {}
@@ -1142,6 +1142,8 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
           <label class="fld"><span>Tab name</span>
             <select id="setName"><option value="default">Default · OFFGRID (follows the page title)</option><option value="en">English · Home - Classroom</option><option value="custom">Custom…</option></select></label>
           <input id="setCustom" type="text" maxlength="80" placeholder="Custom tab name" aria-label="Custom tab name" style="display:none">
+          <label class="fld"><span>Location</span>
+            <select id="setLoc"><option value="no">Norway</option><option value="en">Other</option></select></label>
           <p class="setnote">Applies to the browser tab only and is saved in this browser (localStorage).</p>
         </div>
       </section>
@@ -1264,6 +1266,16 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   <button class="ctxi" id="fsbtn" type="button" role="menuitem" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-expand"/></svg><span id="mmfs">Full screen</span></button>
   <div class="ctxsep"></div>
   <button class="ctxi mmset" id="setbtn" type="button" role="menuitem"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg><span>Settings</span></button>
+</div>
+<div class="modal" id="langmodal" role="dialog" aria-modal="true" aria-labelledby="langTitle" style="z-index:70">
+  <div class="setcard updcard">
+    <h3 id="langTitle">Where are you located?</h3>
+    <p>Pick one to continue. Norway gets the Norwegian tab name; Other uses English.</p>
+    <div class="updbtns">
+      <button class="btn" id="langNo" type="button">Norway</button>
+      <button class="btn" id="langEn" type="button">Other</button>
+    </div>
+  </div>
 </div>
 <div class="modal" id="updmodal" role="dialog" aria-modal="true" aria-labelledby="updTitle">
   <div class="setcard updcard">
@@ -3095,7 +3107,8 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     return {
       reasoning: function (t) { if (t) { bot.reasoning += t; aiSched(bot); } },
       content: function (t) { if (t) split(t, false); },
-      end: function () { split('', true); }
+      end: function () { split('', true); },
+      finish: function (r) { bot.finish = r; }
     };
   }
 
@@ -3115,6 +3128,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       return r.json().then(function (j) {
         if (j && j.error) throw new Error(typeof j.error === 'string' ? j.error : (j.error.message || 'AI Horde error'));
         var msg = (j.choices && j.choices[0] && (j.choices[0].message || j.choices[0].delta)) || {};
+        if (j.choices && j.choices[0] && j.choices[0].finish_reason) sink.finish(j.choices[0].finish_reason);
         sink.reasoning(msg.reasoning || msg.reasoning_content || msg.thinking || '');
         sink.content(msg.content || '');
         sink.end();
@@ -3131,6 +3145,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       try { j = JSON.parse(data); } catch (e) { return; }
       if (j.error) throw new Error(typeof j.error === 'string' ? j.error : (j.error.message || 'AI Horde error'));
       var c = j.choices && j.choices[0];
+      if (c && c.finish_reason) sink.finish(c.finish_reason);
       var d = c && (c.delta || c.message);
       if (!d) return;
       sink.reasoning(d.reasoning || d.reasoning_content || d.thinking || '');
@@ -3154,28 +3169,60 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     return pump();
   }
 
-  function aiStream(m, history, bot) {
-    function once(withReasoning) {
-      bot.content = ''; bot.reasoning = '';
-      var sink = aiSink(bot);
-      var body = { model: m.id, messages: history, stream: true, temperature: 0.6, max_tokens: withReasoning ? 2048 : 1024 };
-      if (withReasoning) body.reasoning_effort = 'high';
-      ai.ctrl = new AbortController();
-      return aiFetch('chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ai.ctrl.signal }).then(function (r) {
-        if (!r.ok) {
-          return r.text().then(function (t) { var e = new Error(aiErrText(r.status, t)); e.status = r.status; throw e; });
-        }
-        return aiReadStream(r, sink);
-      }).then(function () {
-        if (!bot.content && !bot.reasoning) throw new Error('empty response');
-      });
-    }
-    if (!m.reasoning) return once(false);
-    return once(true).catch(function (e) {
-      if (e && e.name === 'AbortError') throw e;
-      if (e && (e.status === 400 || e.status === 422)) return once(false); // this model/endpoint rejected the reasoning options
-      throw e;
+  /* One request to the worker. append=true keeps what the bot already wrote and adds to it (used to continue a cut-off answer). */
+  function aiOnce(m, history, bot, withReasoning, append) {
+    if (!append) { bot.content = ''; bot.reasoning = ''; }
+    bot.finish = '';
+    var sink = aiSink(bot);
+    var body = { model: m.id, messages: history, stream: true, temperature: 0.6, max_tokens: withReasoning ? 8192 : 4096 };
+    if (withReasoning) body.reasoning_effort = 'medium';
+    ai.ctrl = new AbortController();
+    return aiFetch('chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ai.ctrl.signal }).then(function (r) {
+      if (!r.ok) {
+        return r.text().then(function (t) { var e = new Error(aiErrText(r.status, t)); e.status = r.status; throw e; });
+      }
+      return aiReadStream(r, sink);
+    }).then(function () {
+      if (!bot.content && !bot.reasoning) throw new Error('empty response');
     });
+  }
+
+  /* Qwen3 soft switch: "/no_think" on the last user message turns thinking off for that request */
+  function aiNoThink(history) {
+    var h = history.map(function (x) { return { role: x.role, content: x.content }; });
+    for (var k = h.length - 1; k >= 0; k--) if (h[k].role === 'user') { h[k].content += ' /no_think'; break; }
+    return h;
+  }
+
+  /* The model hit the token limit (finish_reason "length"): if it was still thinking, ask again with thinking off;
+     if the answer itself was cut off, ask it to carry on and join the pieces (up to 3 times). */
+  function aiFinishCutOff(m, history, bot) {
+    var tries = 0;
+    function step() {
+      if (bot.finish !== 'length') return;
+      if (!bot.content) { // all tokens went into thinking
+        if (tries++ >= 1) return;
+        setAiStat('Thinking took too long, answering directly…');
+        return aiOnce(m, aiNoThink(history), bot, false, false).then(step);
+      }
+      if (tries++ >= 3) return;
+      setAiStat('Continuing…');
+      var h = history.concat([
+        { role: 'assistant', content: bot.content },
+        { role: 'user', content: 'Continue exactly where you stopped. Do not repeat anything. /no_think' }
+      ]);
+      return aiOnce(m, h, bot, false, true).then(step);
+    }
+    return Promise.resolve(step());
+  }
+
+  function aiStream(m, history, bot) {
+    var first = m.reasoning ? aiOnce(m, history, bot, true, false).catch(function (e) {
+      if (e && e.name === 'AbortError') throw e;
+      if (e && (e.status === 400 || e.status === 422)) return aiOnce(m, history, bot, false, false); // this model/endpoint rejected the reasoning options
+      throw e;
+    }) : aiOnce(m, history, bot, false, false);
+    return first.then(function () { return aiFinishCutOff(m, history, bot); });
   }
 
   function aiHistory() {
@@ -3537,9 +3584,9 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     classroom: { url: CLS_SVG, bar: CLS_BAR, type: 'image/png' }
   };
   var TAB_NAMES = { no: 'Startside - Classroom', en: 'Home - Classroom' };
-  /* the Norwegian tab name is only offered when the visitor's IP is in Norway */
-  var GEO_KEY = 'offgrid.geo.v1', IS_NO = false;
-  try { IS_NO = sessionStorage.getItem(GEO_KEY) === 'NO'; } catch (e) {}
+  /* the Norwegian tab name is only offered when the person chose Norwegian in the language picker at the start */
+  var LANG_KEY = 'offgrid.lang.v1', IS_NO = false, LANG_SET = false;
+  try { var lg = localStorage.getItem(LANG_KEY); LANG_SET = lg === 'no' || lg === 'en'; IS_NO = lg === 'no'; } catch (e) {}
   function clsName() { return IS_NO ? 'no' : 'en'; }               // name used by the Classroom preset / logo click
   function effName() { return settings.name === 'no' && !IS_NO ? 'en' : settings.name; }
   function syncNameOpt() {
@@ -3548,22 +3595,6 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       o = document.createElement('option'); o.value = 'no'; o.textContent = 'Norwegian · ' + TAB_NAMES.no;
       sel.insertBefore(o, sel.querySelector('option[value="en"]'));
     } else if (!IS_NO && o) o.remove();
-  }
-  function geoCountry() {
-    var tries = [
-      function () { return fetch('https://api.country.is/').then(function (r) { return r.json(); }).then(function (j) { return j.country; }); },
-      function () { return fetch('https://ipapi.co/country/').then(function (r) { return r.text(); }); },
-      function () { return fetch('https://www.cloudflare.com/cdn-cgi/trace').then(function (r) { return r.text(); }).then(function (t) { var m = /^loc=(\w+)/m.exec(t); return m && m[1]; }); }
-    ];
-    function next(i) {
-      if (i >= tries.length) return Promise.resolve(null);
-      var timeout = new Promise(function (res) { setTimeout(function () { res(null); }, 4000); });
-      return Promise.race([tries[i]().catch(function () { return null; }), timeout]).then(function (c) {
-        c = typeof c === 'string' ? c.trim().toUpperCase() : '';
-        return /^[A-Z]{2}$/.test(c) ? c : next(i + 1);
-      });
-    }
-    return next(0);
   }
   var settings = { fav: 'default', name: 'default', custom: '', cookies: true, restore: true, history: true, bmbar: true, theme: 'lime', accent: '', pos: 'left', showGreet: true, showHead: true, showShort: true, showPower: true, showBg: true };
 
@@ -3662,6 +3693,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     $('setFav').value = settings.fav;
     syncNameOpt();
     $('setName').value = effName();
+    $('setLoc').value = IS_NO ? 'no' : 'en';
     $('setCustom').value = settings.custom;
     $('setCustom').style.display = settings.name === 'custom' ? 'block' : 'none';
     $('tabTitle').textContent = fixedTitle() || 'OFFGRID';
@@ -3799,12 +3831,21 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   renderLook();
   syncNameOpt();
   applyTab();
-  geoCountry().then(function (c) {
-    if (!c) return;                                   // lookup failed: keep whatever we had
-    var no = c === 'NO';
-    try { sessionStorage.setItem(GEO_KEY, c); } catch (e) {}
-    if (no !== IS_NO) { IS_NO = no; syncNameOpt(); applyTab(); renderSettings(); }
+  /* language picker: shown until Norwegian or English has been clicked; no Escape, no click outside, no close button */
+  function langChoose(l) {
+    try { localStorage.setItem(LANG_KEY, l); } catch (e) {}
+    LANG_SET = true; IS_NO = l === 'no';
+    $('langmodal').classList.remove('on');
+    syncNameOpt(); applyTab(); renderSettings();
+  }
+  $('setLoc').addEventListener('change', function () { langChoose($('setLoc').value === 'no' ? 'no' : 'en'); toast($('setLoc').value === 'no' ? 'Location: Norway' : 'Location: Other'); });
+  $('langNo').addEventListener('click', function () { langChoose('no'); });
+  $('langEn').addEventListener('click', function () { langChoose('en'); });
+  $('langmodal').addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); }
+    else if (e.key === 'Tab') { e.preventDefault(); (document.activeElement === $('langNo') ? $('langEn') : $('langNo')).focus(); }
   });
+  if (!LANG_SET) { $('langmodal').classList.add('on'); $('langNo').focus(); }
   Object.keys(FAVS).forEach(function (k) { if (FAVS[k].fb) favLoad(k); }); // warm the cache so switching icons is instant
   $('setbtn').addEventListener('click', function () { openSettings(); });
   $('presetDef').addEventListener('click', function () { settings.fav = 'default'; settings.name = 'default'; settingsChanged(); });
