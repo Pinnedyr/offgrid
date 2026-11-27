@@ -3,7 +3,7 @@
 <head>
 <script>
 /* ===== OFFGRID version config (edit these two for each release) ===== */
-window.OFFGRID = { release: 'BETA', version: 'V1.5' };
+window.OFFGRID = { release: 'BETA', version: 'V1.6' };
 (function () {
   var o = window.OFFGRID;
   try { console.log('%cOFFGRID%c ' + o.release + ' ' + o.version, 'background:#c8ff5f;color:#11170d;font-weight:800;padding:2px 6px;border-radius:4px', 'color:#7ef0c0'); } catch (e) {}
@@ -945,9 +945,56 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
 .aiempty-ic{color:var(--ai-green);background:rgba(var(--ai-green-rgb),.12);border-color:rgba(var(--ai-green-rgb),.32)}
 /* YouTube tab icon: always red, whatever theme is picked */
 .tab[data-kind="youtube"]>.ic{color:#ff4b4b}
+
+/* ---------- stealth mode ---------- */
+.bmstealth{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;height:28px;margin-left:auto;padding:0 11px 0 9px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);font:700 12px Manrope,system-ui,sans-serif;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.bmstealth .ic{width:15px;height:15px}
+.bmstealth:hover,.bmstealth:focus-visible{background:rgba(var(--acc-rgb),.10);border-color:rgba(var(--acc-rgb),.4);color:var(--lime);outline:none}
+.bmstealth.on{background:rgba(var(--acc-rgb),.14);border-color:rgba(var(--acc-rgb),.55);color:var(--lime)}
+.stlapp{position:absolute;inset:0;overflow-y:auto;display:none;padding:26px 20px 48px}
+.viewer.stl .stlapp{display:block}
+.viewer.stl iframe.webframe{display:none}
+.stlwrap{max-width:660px;margin:0 auto}
+.stlhead{text-align:center;margin:18px 0 22px}
+.stlbig{width:64px;height:64px;margin:0 auto 14px;display:grid;place-items:center;border-radius:20px;border:1px solid rgba(var(--acc-rgb),.35);background:rgba(var(--acc-rgb),.10);color:var(--lime)}
+.stlbig .ic{width:30px;height:30px}
+.stlhead h2{margin:0 0 6px;font-size:26px;letter-spacing:-.02em}
+.stlhead p{margin:0;color:var(--muted);font-size:14px}
+.stlcard{border:1px solid var(--line);border-radius:16px;padding:18px 20px;background:var(--sf);margin-bottom:14px}
+.stlcard h4{margin:0 0 10px;font-size:13px;letter-spacing:.02em}
+.stlcard ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.stlcard li{font-size:13px;line-height:1.55;color:var(--muted)}
+.stlcard li b{color:var(--text)}
+.stlkey{display:inline-block;padding:1px 7px;border:1px solid var(--line);border-radius:6px;font:700 11.5px Manrope,system-ui,sans-serif;color:var(--lime)}
+.stlrow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:6px 0}
+.stlrow+.stlrow{border-top:1px solid var(--line);margin-top:8px;padding-top:14px}
+.stlrow b{display:block;font-size:13px}
+.stlrow small{display:block;margin-top:2px;color:var(--muted);font-size:11.5px;line-height:1.5}
+.stlrow .btn{height:36px;font-size:12.5px;flex:0 0 auto}
+.stlrow .btn[disabled]{opacity:.4;cursor:default;pointer-events:none}
+/* the fake Google 404 shown by the Classroom lock */
+#stlock{display:none;position:fixed;inset:0;z-index:2147483647;background:#fff;color:#222;font:15px/22px arial,sans-serif;overflow:auto;padding:15px;text-align:left}
+html.stlocked #stlock{display:block}
+html.stlocked body>*:not(#stlock){display:none!important}
+html.stlocked,html.stlocked body{background:#fff!important}
+#stlock .g404{margin:7% auto 0;max-width:390px;min-height:180px;padding:30px 0 15px}
+#stlock .g404logo{display:block;width:150px;height:54px;margin-left:-5px;font:500 42px/54px "Product Sans",Arial,sans-serif;letter-spacing:-1px;user-select:none}
+#stlock p{margin:11px 0 22px;overflow:hidden}
+#stlock ins{color:#777;text-decoration:none}
+#stlock code{font:15px/22px arial,sans-serif}
+#stlock button{display:inline-block;margin-top:2px;padding:8px 16px;border:1px solid #dadce0;border-radius:4px;background:#fff;color:#1a73e8;font:500 14px/20px arial,sans-serif;cursor:pointer}
+#stlock button:hover{background:#f6fafe;border-color:#d2e3fc}
+@media screen and (max-width:772px){#stlock .g404{margin-top:0;max-width:none}}
 </style>
 </head>
 <body>
+<script>try{var _l=/(?:^|; )og_cls_lock=1/.test(document.cookie);if(!_l){var _j=JSON.parse(localStorage.getItem('offgrid.stealth.v1')||'null');_l=!!(_j&&_j.l)}if(_l){document.documentElement.className+=' stlocked';document.title='Error 404 (Not Found)!!1'}}catch(e){}</script>
+<div id="stlock" role="alert"><div class="g404">
+  <span class="g404logo" aria-label="Google"><span style="color:#4285f4">G</span><span style="color:#ea4335">o</span><span style="color:#fbbc05">o</span><span style="color:#4285f4">g</span><span style="color:#34a853">l</span><span style="color:#ea4335">e</span></span>
+  <p><b>404.</b> <ins>That&rsquo;s an error.</ins></p>
+  <p>The requested URL <code>/classroom/h</code> was not found on this server. <ins>That&rsquo;s all we know.</ins></p>
+  <button id="stlGo" type="button">Go to the Classroom home page</button>
+</div></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></symbol>
@@ -990,6 +1037,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   <symbol id="i-full" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
   <symbol id="i-unfull" viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/></symbol>
   <symbol id="i-console" viewBox="0 0 24 24"><path d="M6.5 7h11a4.5 4.5 0 0 1 4.45 3.85l.6 4.4a2.8 2.8 0 0 1-4.85 2.2L16 15.5H8l-1.7 1.95a2.8 2.8 0 0 1-4.85-2.2l.6-4.4A4.5 4.5 0 0 1 6.5 7z"/><path d="M7 10.5v3M5.5 12h3M15.5 11.2h.01M18 13.2h.01"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
 </svg>
 
 <header class="topbar">
@@ -1014,7 +1062,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       <button class="toolbtn menubtn" id="menubtn" type="button" title="Menu" aria-label="Menu" aria-haspopup="menu" aria-expanded="false"><span class="tic"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></span></button>
     </div>
   </nav>
-  <div class="bmbar" id="bmbar" role="toolbar" aria-label="Bookmarks bar"><div class="bmitems" id="bmitems"></div><button class="bmmore" id="bmmore" type="button" title="More bookmarks" aria-label="More bookmarks" aria-haspopup="menu" hidden><svg class="ic" aria-hidden="true"><use href="#i-chevs"/></svg></button></div>
+  <div class="bmbar" id="bmbar" role="toolbar" aria-label="Bookmarks bar"><div class="bmitems" id="bmitems"></div><button class="bmmore" id="bmmore" type="button" title="More bookmarks" aria-label="More bookmarks" aria-haspopup="menu" hidden><svg class="ic" aria-hidden="true"><use href="#i-chevs"/></svg></button><button class="bmstealth" id="bmstealth" type="button" title="Stealth mode" aria-label="Stealth mode"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg><span>Stealth</span></button></div>
   <div class="progress"><i id="bar"></i></div>
 </header>
 
@@ -1098,6 +1146,22 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     </div></div>
     <div id="ytgrid"></div>
   </div></div>
+  <div class="stlapp" id="stlapp"><div class="stlwrap">
+    <div class="stlhead"><div class="stlbig"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg></div><h2>Stealth mode</h2><p>Hide Offgrid the moment you look away.</p></div>
+    <div class="stlcard">
+      <h4>How it works</h4>
+      <ul>
+        <li><span class="stlkey">Alt</span> &nbsp;<b>Press Alt on its own</b> to close this tab straight away.</li>
+        <li><b>Leave the tab</b> (switch tabs or windows) and when you come back it shows a Google 404 page. That is the <b>Classroom lock</b>.</li>
+        <li><b>Refreshing won&rsquo;t get you out.</b> The lock is kept in a cookie, so a reload shows the 404 again.</li>
+        <li><b>To get out</b>, press <b>Go to the Classroom home page</b> on the 404. It turns off stealth mode and the Classroom lock, then sends the tab to classroom.google.com. Just reopen Offgrid afterwards.</li>
+        <li>You can also turn stealth mode off right here, below.</li>
+      </ul>
+    </div>
+    <div class="stlcard">
+      <div class="stlrow"><div><b>Stealth mode</b><small id="stlState">Off</small></div><button class="btn" id="stlToggle" type="button">Enter stealth mode</button></div>
+    </div>
+  </div></div>
   <div class="setapp" id="setapp" data-sec="general"><div class="setwrap">
     <div class="setnav" id="setnav" role="navigation" aria-label="Settings sections">
       <div class="setnavtitle">Settings</div>
@@ -1116,7 +1180,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
           <div class="setline"><div><b>Show bookmarks bar</b><small>Shows your bookmarks in a bar under the address bar. Drag to reorder, right-click to rename, edit or delete.</small></div><label class="switch"><input type="checkbox" id="setBmbar" aria-label="Show bookmarks bar"><i></i></label></div>
         </div>
         <div class="spcard">
-          <div class="setline"><div><b>Welcome tour</b><small>Two quick missions: disguise your tab, then open a real site. It shows once by itself.</small></div><button class="btn ghost sm" id="tourAgain" type="button">Show again</button></div>
+          <div class="setline"><div><b>Welcome tour</b><small>Two quick missions: disguise your tab, then open a real site, plus a look at Stealth mode. It shows once by itself.</small></div><button class="btn ghost sm" id="tourAgain" type="button">Show again</button></div>
         </div>
         <div class="spcard">
           <div class="setline"><div><b>Version</b><small>You are running this build of OFFGRID.</small></div><span class="verbadge" id="verBadge"><b id="verRelease">BETA</b><span id="verNum">V1.1</span></span></div>
@@ -1316,6 +1380,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     if (!s) return null;
     if (/^https?:\/\//i.test(s)) return s;
     if (/^offgrid:\/\/ai\/?$/i.test(s)) return 'offgrid://ai';
+    if (/^offgrid:\/\/stealth\/?$/i.test(s)) return 'offgrid://stealth';
     if (/^offgrid:\/\/entertainment\/?$/i.test(s)) return 'https://www.youtube.com/';
     var sm = /^offgrid:\/\/(?:settings\/?|settings\/(general|appearance|privacy|bookmarks|history)\/?|(bookmarks|history)\/?)$/i.exec(s);
     if (sm) { var ss = (sm[1] || sm[2] || '').toLowerCase(); return 'offgrid://settings' + (ss && ss !== 'general' ? '/' + ss : ''); }
@@ -1400,7 +1465,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   /* what the address bar shows when it has not been edited */
   function curAddr() {
     var u = T && T.hist[T.idx];
-    if (!u || aiRoute(u) || setRoute(u)) return '';
+    if (!u || aiRoute(u) || setRoute(u) || stlRoute(u)) return '';
     var sr = srchRoute(u);
     return sr ? sr.q : u;
   }
@@ -1485,6 +1550,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     if (!u) return 'home';
     if (aiRoute(u)) return 'chat';
     if (setRoute(u)) return 'sliders';
+    if (stlRoute(u)) return 'eye';
     if (srchRoute(u)) return 'search';
     if (ytRoute(u)) return 'youtube';
     return 'globe';
@@ -1494,6 +1560,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     if (!u) return 'New tab';
     if (aiRoute(u)) return 'AI chat';
     if (setRoute(u)) return 'Settings';
+    if (stlRoute(u)) return 'Stealth mode';
     if (t.title) return t.title;
     var sr = srchRoute(u);
     if (sr) return 'Search: ' + sr.q;
@@ -1649,15 +1716,15 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     syncFrames();
     if (!url) {
       setBrowsing(false);
-      viewer.classList.remove('yt', 'srch', 'aitab', 'set');
+      viewer.classList.remove('yt', 'srch', 'aitab', 'set', 'stl');
       yt.src = 'about:blank'; vpClose(); ytKey = '';
       addr.value = ''; setStatus('', '');
       renderLanding();
       return;
     }
-    if (!srchRoute(url) && !ytRoute(url) && !aiRoute(url) && t.frame && t.live) {
+    if (!srchRoute(url) && !ytRoute(url) && !aiRoute(url) && !stlRoute(url) && t.frame && t.live) {
       setBrowsing(true);
-      viewer.classList.remove('yt', 'srch', 'aitab', 'set');
+      viewer.classList.remove('yt', 'srch', 'aitab', 'set', 'stl');
       yt.src = 'about:blank'; vpClose(); ytKey = '';
       addr.value = url;
       t.lastAlive = Date.now();
@@ -1677,7 +1744,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     syncAi();
     if (aiRoute(url)) {
       stopFrame(t); setBanner(null);
-      viewer.classList.remove('yt', 'srch', 'set'); viewer.classList.add('aitab');
+      viewer.classList.remove('yt', 'srch', 'set', 'stl'); viewer.classList.add('aitab');
       yt.src = 'about:blank'; vpClose(); ytKey = '';
       addr.value = ''; progress(false);
       t.title = 'AI chat'; setStatus('AI chat', '');
@@ -1687,7 +1754,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     var stR = setRoute(url);
     if (stR) {
       stopFrame(t); setBanner(null);
-      viewer.classList.remove('yt', 'srch', 'aitab'); viewer.classList.add('set');
+      viewer.classList.remove('yt', 'srch', 'aitab', 'stl'); viewer.classList.add('set');
       yt.src = 'about:blank'; vpClose(); ytKey = '';
       progress(false);
       t.title = 'Settings';
@@ -1696,10 +1763,20 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       renderTabs(); saveTabs();
       return;
     }
+    if (stlRoute(url)) {
+      stopFrame(t); setBanner(null);
+      viewer.classList.remove('yt', 'srch', 'aitab', 'set'); viewer.classList.add('stl');
+      yt.src = 'about:blank'; vpClose(); ytKey = '';
+      addr.value = ''; progress(false);
+      t.title = 'Stealth mode'; setStatus('Stealth mode', '');
+      stlRender();
+      renderTabs(); saveTabs();
+      return;
+    }
     var sr = srchRoute(url);
     if (sr) {
       stopFrame(t); setBanner(null);
-      viewer.classList.remove('yt', 'aitab', 'set'); viewer.classList.add('srch');
+      viewer.classList.remove('yt', 'aitab', 'set', 'stl'); viewer.classList.add('srch');
       yt.src = 'about:blank'; vpClose(); ytKey = '';
       addr.value = sr.q;
       progress(false);
@@ -1710,7 +1787,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       renderTabs(); saveTabs();
       return;
     }
-    viewer.classList.remove('srch', 'aitab', 'set');
+    viewer.classList.remove('srch', 'aitab', 'set', 'stl');
 
     var r = ytRoute(url);
     if (r) {
@@ -4390,6 +4467,10 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     document.addEventListener('keydown', function (e) {
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'f' || e.key === 'F')) { e.preventDefault(); post({ offgrid: 'findkey' }); }
     }, true);
+    var altSolo = false;
+    document.addEventListener('keydown', function (e) { if (e.key === 'Alt') { if (!e.repeat) altSolo = true; } else altSolo = false; }, true);
+    document.addEventListener('mousedown', function () { altSolo = false; }, true);
+    document.addEventListener('keyup', function (e) { if (e.key === 'Alt' && altSolo) { altSolo = false; post({ offgrid: 'altkey' }); } }, true);
     var bypass = false;
     function dl(a) { /* true when the parent takes over the download */
       var h = a.href || '', n = a.getAttribute('download') || '';
@@ -4427,7 +4508,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
     t = t || T;
     var u = t && t.hist[t.idx];
     if (!u || !/^https?:\/\//i.test(u) || !t.frame || !t.frameActive) return false;
-    return !/(^|\s)(yt|srch|aitab|set|msg)(\s|$)/.test(viewer.className);
+    return !/(^|\s)(yt|srch|aitab|set|stl|msg)(\s|$)/.test(viewer.className);
   }
   function zApply() {
     if (!T) return;
@@ -4640,6 +4721,8 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       if (t !== T) return;
       clearTimeout(fWait);
       if (d.q === fq.value) fResult({ n: +d.n || 0, i: +d.i || 0 }, d.q);
+    } else if (d.offgrid === 'altkey') {
+      if (t === T) stlAlt();
     } else if (d.offgrid === 'findkey') {
       if (t === T) findOpen();
     } else if (d.offgrid === 'dl') {
@@ -5159,7 +5242,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
      Two forced missions:  1 disguise the tab   2 open wtfq.online in Browse mode.
      Those steps cannot be skipped (Next stays off until the thing is done). The one exception: if wtfq.online
      will not load, a "skip this part" button appears. The demo site opens in its own tab, closed again at the end. */
-  var TOUR_KEY = 'offgrid.tour.v1';
+  var TOUR_KEY = 'offgrid.tour.v2'; // v2: new Stealth step, and older copies' "seen" flag no longer hides it
   var TOUR_SITE = 'https://wtfq.online/';
   var tourOn = false, tourI = 0, tourPrevFocus = null, tourNudge = false, tourPoll = 0, tourT0 = 0, tourSig = '', tourWasOk = false;
   var tourFlags = {}, tourTab = null, tourOwn = false, tourCommitted = false; // committed: the person pressed Start, so there is no skipping any more
@@ -5188,7 +5271,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
 
   var TOUR_STEPS = [
     { id: 'welcome', tag: 'Welcome \u00b7 about a minute', title: 'Ready to go off the grid?',
-      text: 'This is the fun part. Finish <b>2 quick missions</b> and you unlock:<ul><li>A one-click <b>disguise</b> for your tab</li><li>A live, anonymous way into blocked sites</li><li>The shortcuts most people never find</li></ul><p>Once you hit start, you are in until the end.</p>',
+      text: 'This is the fun part. Finish <b>2 quick missions</b> and you unlock:<ul><li>A one-click <b>disguise</b> for your tab</li><li>A live, anonymous way into blocked sites</li><li><b>Stealth mode</b> that hides Offgrid behind a Google 404</li><li>The shortcuts most people never find</li></ul><p>Once you hit start, you are in until the end.</p>',
       next: "Let's go", skip: 'Maybe later' },
     { id: 'disguise', gate: true, click: true, tag: 'Mission 1 of 2', target: function () { return $('home'); }, title: 'Disguise your tab',
       text: 'Teacher walking by? One click turns this tab into <b>Google Classroom</b>: the icon and the name both change. <b>Click the glowing logo</b> to do it. Right-click it any time to pick your own tab name.',
@@ -5215,10 +5298,12 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
       text: 'The <b>three lines</b> open the menu: new tab, reopen a closed tab, bookmarks, history, copy link and <b>Full screen</b>. Full screen slides the top and bottom bars away. Move your mouse to the very top edge to bring back an <b>arrow</b> that takes you out again, or press <b>Esc</b>.' },
     { id: 'bookmarks', tag: 'Power move', target: function () { return $('starbtn'); }, title: 'Bookmarks',
       text: 'Star a page to keep it. Bookmarks appear in the bar under the address bar and as <b>Favourites</b> on the home page. Right-click one to rename or edit it.' },
+    { id: 'stealth', tag: 'Power move', target: function () { return $('bmstealth'); }, title: 'Stealth mode',
+      text: 'The <b>Stealth</b> button at the far right of the bookmarks bar turns the tab into <b>Google Classroom</b> and opens the stealth page. Once you enter stealth mode, press <b>Alt</b> on its own to close the tab. If you leave the tab, it shows a <b>Google 404</b> when you come back, and a refresh will not remove it. Press <b>Go to the Classroom home page</b> on the 404 to switch it off.' },
     { id: 'finale', finale: true, tag: 'Mission complete', title: 'You are officially off the grid',
       text: function () {
         var row = function (label, on, off) { return '<li' + (on ? '' : ' class="off"') + '>' + (on ? label : label + ' (' + off + ')') + '</li>'; };
-        return 'Here is what you unlocked:<ul>' + row('Tab disguise', tourFlags.disguise, 'skipped') + row('Browse mode', tourFlags.site, 'skipped') + '</ul><p>Search for something or open a favourite to start. Happy browsing!</p>';
+        return 'Here is what you unlocked:<ul>' + row('Tab disguise', tourFlags.disguise, 'skipped') + row('Browse mode', tourFlags.site, 'skipped') + row('Stealth mode', true, '') + '</ul><p>Search for something or open a favourite to start. Happy browsing!</p>';
       }, next: 'Start browsing' }
   ];
 
@@ -5364,7 +5449,7 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   }
   /* wait for the unlock / restore dialogs to be answered before the tour appears */
   function tourMaybe() {
-    if (tourSeen() || tourOn) return;
+    if (tourSeen() || tourOn || stlLocked()) return;
     if (document.querySelector('.modal.on')) { setTimeout(tourMaybe, 900); return; }
     setTimeout(function () { if (document.querySelector('.modal.on')) tourMaybe(); else tourStart(false); }, 500);
   }
@@ -5523,6 +5608,102 @@ html[data-theme="paper"]{--bg:#f8f3ec;--bg-rgb:248,243,236;--panel:#fffdf9;--tex
   });
   $('updLater').addEventListener('click', function () { verLater = true; $('updmodal').classList.remove('on'); });
   $('verCheck').addEventListener('click', function () { verStatus('Checking...'); verCheck(true); });
+
+  /* ---------- stealth mode: offgrid://stealth ----------
+     "Stealth" arms a tripwire. While it is armed, leaving the tab turns on the Classroom lock: the whole page is replaced by a
+     Google 404 and that is remembered in a cookie (and localStorage as a back-up), so a refresh shows the 404 again.
+     The only ways out are the button on the 404 and the switches on the Stealth page. */
+  var STL_LS = 'offgrid.stealth.v1', STL_TITLE = 'Error 404 (Not Found)!!1', STL_HOME = 'https://classroom.google.com/';
+  var STL_BLANK = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%23fff%22/%3E%3C/svg%3E';
+  var stlOldIcon = null, stlAltSolo = false;
+  function stlRoute(u) { return /^offgrid:\/\/stealth\/?$/i.test(u || ''); }
+  function stlCookie(k) { return k === 's' ? 'og_stealth' : 'og_cls_lock'; }
+  function stlStore() { try { var j = JSON.parse(localStorage.getItem(STL_LS) || 'null'); return j && typeof j === 'object' ? j : {}; } catch (e) { return {}; } }
+  function stlGet(k) {
+    try { if (('; ' + document.cookie).indexOf('; ' + stlCookie(k) + '=1') >= 0) return true; } catch (e) {}
+    return !!stlStore()[k];
+  }
+  function stlSet(k, on) {
+    try { document.cookie = stlCookie(k) + '=' + (on ? '1; max-age=31536000' : '0; max-age=0') + '; path=/; SameSite=Lax'; } catch (e) {}
+    try { var j = stlStore(); if (on) j[k] = 1; else delete j[k]; localStorage.setItem(STL_LS, JSON.stringify(j)); } catch (e) {}
+  }
+  function stlLocked() { return document.documentElement.classList.contains('stlocked'); }
+  function stlPaint() { // while locked the tab looks like a plain Google 404: its title, and a blank icon
+    if (document.title !== STL_TITLE) document.title = STL_TITLE;
+    Array.prototype.forEach.call(document.querySelectorAll('link[rel~="icon"]'), function (o) {
+      var h = o.getAttribute('href');
+      if (h !== STL_BLANK) { if (stlOldIcon === null) stlOldIcon = h; o.setAttribute('href', STL_BLANK); }
+    });
+  }
+  function stlLockOn(on) {
+    document.documentElement.classList.toggle('stlocked', on);
+    if (on) { stlPaint(); return; }
+    applyTitle();
+    if (stlOldIcon !== null) {
+      Array.prototype.forEach.call(document.querySelectorAll('link[rel~="icon"]'), function (o) { if (o.getAttribute('href') === STL_BLANK) o.setAttribute('href', stlOldIcon); });
+      stlOldIcon = null;
+    }
+  }
+  try {
+    new MutationObserver(function () { if (stlLocked()) stlPaint(); })
+      .observe(document.head, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['href'] });
+  } catch (e) {}
+  function stlRender() {
+    var s = stlGet('s');
+    $('bmstealth').classList.toggle('on', s);
+    $('stlState').textContent = s ? 'On. Leaving this tab locks it behind a 404 page.' : 'Off';
+    $('stlToggle').textContent = s ? 'Turn off stealth mode' : 'Enter stealth mode';
+    $('stlToggle').classList.toggle('ghost', s);
+  }
+  function stlLockNow() {
+    if (!stlGet('s') || stlGet('l')) return;
+    stlSet('l', true); stlLockOn(true); stlRender();
+  }
+  function stlSync() {
+    var l = stlGet('l');
+    if (l !== stlLocked()) stlLockOn(l);
+    stlRender();
+  }
+  function stlLeave() { // open Classroom in a new tab first, then close Offgrid
+    var w = null;
+    try { w = window.open(STL_HOME, '_blank'); } catch (e) {}
+    if (!w) { // pop-up blocked: Classroom takes over this tab instead
+      try { (window.top || window).location.replace(STL_HOME); } catch (e) { location.replace(STL_HOME); }
+      return;
+    }
+    try { window.close(); } catch (e) {}
+    setTimeout(function () { // the browser refused to close this tab: blank it so Offgrid is not left on screen
+      try { location.replace('about:blank'); } catch (e) {}
+    }, 300);
+  }
+  function stlAlt() { // Alt on its own: out of here
+    if (!stlGet('s') || stlGet('l')) return;
+    stlLeave();
+  }
+  document.addEventListener('visibilitychange', function () { if (document.hidden) stlLockNow(); else stlSync(); });
+  window.addEventListener('blur', function () {
+    setTimeout(function () { if (!document.hasFocus()) stlLockNow(); }, 80); // focus moving into a page frame is not leaving
+  });
+  window.addEventListener('focus', stlSync);
+  window.addEventListener('pageshow', stlSync);
+  window.addEventListener('storage', stlSync);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Alt') { if (!e.repeat) stlAltSolo = true; } else stlAltSolo = false; }, true);
+  document.addEventListener('mousedown', function () { stlAltSolo = false; }, true);
+  document.addEventListener('keyup', function (e) { if (e.key === 'Alt' && stlAltSolo) { stlAltSolo = false; stlAlt(); } }, true);
+
+  $('bmstealth').addEventListener('click', function () {
+    if (settings.fav !== 'classroom' || effName() !== clsName()) { settings.fav = 'classroom'; settings.name = clsName(); settingsChanged(); } // Classroom icon + name
+    openToolTab('offgrid://stealth', stlRoute);
+  });
+  $('stlToggle').addEventListener('click', function () {
+    if (stlGet('s')) { stlSet('s', false); stlSet('l', false); stlLockOn(false); toast('Stealth mode off'); }
+    else { stlSet('s', true); toast('Stealth mode on'); }
+    stlRender();
+  });
+  $('stlGo').addEventListener('click', function () { stlSet('s', false); stlSet('l', false); stlLockOn(false); stlLeave(); });
+  if (stlGet('l')) stlLockOn(true);
+  stlRender();
+
 
   boot();
   verCheck(false);
